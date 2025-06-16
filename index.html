@@ -2,15 +2,46 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>AAAAAAAAAAAAAAAAA</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Discord Status</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    #status {
+      font-size: 24px;
+      color: #7289da;
+    }
+  </style>
 </head>
 <body>
-  <div id="container">
-    <h1>AAAAAAAAAAAAAAAAAAAAAAAAAAAA</h1>
-    <p>WELKOM</p>
-    <iframe src="https://discord.com/widget?id=446226718844256266&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0"></iframe>
+  <h1>Dein Discord Status</h1>
+  <div id="status">Lade...</div>
 
-  <script src="script.js"></script>
+  <script>
+    const userId = '446226718844256266';
+    const url = `https://api.lanyard.rest/v1/users/${userId}`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const statusElement = document.getElementById('status');
+        if (data.data) {
+          const discordData = data.data;
+          let statusMessage = `Status: ${discordData.discord_status}<br>`;
+          if (discordData.listening_to_spotify) {
+            statusMessage += `Hört gerade Spotify: ${discordData.spotify.song}`;
+          }
+          statusElement.innerHTML = statusMessage;
+        } else {
+          statusElement.innerHTML = 'Benutzer nicht gefunden oder API-Fehler.';
+        }
+      })
+      .catch(error => {
+        console.error('Fehler beim Abrufen des Discord-Status:', error);
+        document.getElementById('status').innerHTML = 'Fehler beim Abrufen des Status.';
+      });
+  </script>
 </body>
 </html>

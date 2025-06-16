@@ -1,29 +1,41 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>helo</title>
+  <title>Discord activity - Saskey</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div class="card">
-    <img id="avatar" src="https://via.placeholder.com/100?text=?" alt="Avatar" />
-    <div class="user-info">
-      <div class="username-row">
-        <h2 id="username">Lade...</h2>
-        <button id="copyBtn" title="Username kopieren"></button>
-        <span id="status-icon"></span>
-      </div>
-      <p id="activity">no Aktivität</p>
-    </div>
-  </div>
 
-  <div id="spotifyContainer" class="spotify">
-    <h3>Spotify</h3>
-    <div id="spotifyInfo">Keine Spotify-Daten</div>
+<body>
+  <div class="main-container">
+    <div class="left-container">
+      <div class="card">
+        <img id="avatar" src="https://via.placeholder.com/100?text=?" alt="Avatar" />
+        <div class="user-info">
+          <div class="username-row">
+            <h2 id="username">Lade...</h2>
+            <button id="copyBtn" title="Username kopieren"></button>
+            <span id="status-icon"></span>
+          </div>
+          <p id="activity">no Aktivität</p>
+        </div>
+      </div>
+
+      <div id="spotifyContainer" class="spotify">
+        <h3>Spotify activity:</h3>
+        <div id="spotifyInfo">Not listening to music right now</div>
+      </div>
+    </div>
+
+    <div class="cat-container">
+      <h3>My cat yuno:</h3>
+      <img src="https://media.discordapp.net/attachments/1162705489986080801/1384099904455966741/image.jpg?ex=685132fc&is=684fe17c&hm=ac203f484405f4e7804cf051877c0e8b6b0d60be2949421ef15aa690b35de478&=&format=webp&width=720&height=960" alt="My Cat Yuno" />
+    </div>
   </div>
 
   <script src="script.js"></script>
 </body>
+
 </html>

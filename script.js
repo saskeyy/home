@@ -10,34 +10,6 @@ const spotifyContent = document.getElementById("spotifyInfo");
 
 let userPresence = null;
 
-function getTextColor(bgColor) {
-  const [r, g, b] = bgColor.match(/\d+/g).map(Number);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness >= 128 ? "#000" : "#fff";
-}
-
-function extractMainColor(imgUrl, callback) {
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.src = imgUrl;
-  img.onload = () => {
-    const c = document.createElement("canvas");
-    const ctx = c.getContext("2d");
-    c.width = img.width;
-    c.height = img.height;
-    ctx.drawImage(img, 0, 0);
-    const data = ctx.getImageData(0, 0, c.width, c.height).data;
-    let r = 0, g = 0, b = 0, samples = 0;
-    for (let i = 0; i < data.length; i += 40) {
-      r += data[i]; g += data[i + 1]; b += data[i + 2]; samples++;
-    }
-    r = Math.floor(r / samples);
-    g = Math.floor(g / samples);
-    b = Math.floor(b / samples);
-    callback(`rgb(${r}, ${g}, ${b})`);
-  };
-}
-
 function showStatusIcon(state) {
   const icons = {
     online: "#43b581",
@@ -57,9 +29,8 @@ copyBtn.onclick = () => {
   }
 };
 
-// Dummy-Funktion zur Fehlervermeidung
-window.updateThreeWithSpotifyArt = function () {
-};
+// Fallback falls Funktion nicht vorhanden
+window.updateThreeWithSpotifyArt = window.updateThreeWithSpotifyArt || function () {};
 
 const ws = new WebSocket("wss://api.lanyard.rest/socket");
 
@@ -79,6 +50,7 @@ ws.onmessage = ({ data }) => {
     avatarEl.src = "https://placehold.co/100x100?text=?";
     statusEl.innerHTML = "";
     activityEl.textContent = "";
+    spotifyContent.innerHTML = "";
     return;
   }
 
@@ -91,44 +63,29 @@ ws.onmessage = ({ data }) => {
   activityEl.textContent = act ? `Activity: ${act.name}` : "No activity";
 
   if (userPresence.listening_to_spotify && userPresence.spotify) {
-    const { song, artist, album_art_url, track_id } = userPresence.spotify;
+    const { album_art_url, track_id } = userPresence.spotify;
     window.updateThreeWithSpotifyArt(album_art_url);
+
     spotifyContent.innerHTML = `
-      <div class="spotify-track">
-        <img src="${album_art_url}" alt="Cover">
-        <div class="track-name">${song}</div>
-        <div class="track-artist">${artist}</div>
-        <iframe class="spotify-embed" src="https://open.spotify.com/embed/track/${track_id}"
-          width="100%" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-      </div>
+      <iframe class="spotify-embed" src="https://open.spotify.com/embed/track/${track_id}"
+        width="100%" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
     `;
 
-    extractMainColor(album_art_url, (color) => {
-      const textColor = getTextColor(color);
-      spotifyBox.style.backgroundColor = color;
-      spotifyBox.style.color = textColor;
-      const nameBox = spotifyBox.querySelector(".track-name");
-      const artistBox = spotifyBox.querySelector(".track-artist");
-      if (nameBox) nameBox.style.color = textColor;
-      if (artistBox) artistBox.style.color = textColor;
-
-      const card = document.querySelector(".card");
-      if (card) {
-        card.style.backgroundColor = color;
-        card.style.color = textColor;
-      }
-    });
+    spotifyBox.style.backgroundColor = "";
+    spotifyBox.style.color = "";
   } else {
-    spotifyContent.innerHTML = "Not listening to Spotify right now.";
-    [spotifyBox, document.querySelector(".card")].forEach(el => {
-      if (el) {
-        el.style.backgroundColor = "";
-        el.style.color = "";
-        ["track-name", "track-artist"].forEach(cls => {
-          const txtEl = el.querySelector(`.${cls}`);
-          if (txtEl) txtEl.style.color = "";
-        });
-      }
-    });
+    spotifyContent.innerHTML = "";
+    spotifyBox.style.backgroundColor = "";
+    spotifyBox.style.color = "";
   }
 };
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const username = document.getElementById('username').textContent;
+  navigator.clipboard.writeText(username).then(() => {
+    alert('Username copied!');
+  }).catch(() => {
+    alert('Kopieren fehlgeschlagen.');
+  });
+});
+

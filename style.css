@@ -8,7 +8,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   margin: 0;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .main-container {
@@ -159,4 +159,39 @@ body {
 
 .cat-container h3 {
   margin-top: 0;
+}
+
+/* Media Query für mobile Geräte */
+@media (max-width: 768px) {
+  body {
+    padding: 0.5rem;
+  }
+
+  .main-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card, .spotify, .cat-container {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .username-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #username {
+    font-size: 1.1rem;
+  }
+
+  #activity {
+    font-size: 0.8rem;
+  }
+
+  .spotify-track {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

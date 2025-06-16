@@ -8,6 +8,7 @@ const spotifyContainer = document.getElementById("spotifyContainer");
 const spotifyInfo = document.getElementById("spotifyInfo");
 
 let presence = null;
+let socket = null;
 
 function updateStatus(status) {
   const svgs = {
@@ -34,83 +35,92 @@ copyBtn.addEventListener("click", () => {
   });
 });
 
-const socket = new WebSocket("wss://api.lanyard.rest/socket");
+function connectWebSocket() {
+  socket = new WebSocket("wss://api.lanyard.rest/socket");
 
-socket.onopen = () => {
-  console.log("WebSocket connection opened");
-  socket.send(JSON.stringify({
-    op: 2,
-    d: {
-      subscribe_to_ids: [userId],
-    },
-  }));
+  socket.onopen = () => {
+    console.log("WebSocket connection opened");
+    socket.send(JSON.stringify({
+      op: 2,
+      d: {
+        subscribe_to_ids: [userId],
+      },
+    }));
 
-  setInterval(() => {
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ op: 3 }));
+    setInterval(() => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ op: 3 }));
+      }
+    }, 30000);
+  };
+
+  socket.onmessage = (event) => {
+    console.log("Message received:", event.data);
+    const data = JSON.parse(event.data);
+    if (!data.t || !data.d) return;
+
+    if (data.t === "INIT_STATE") {
+      presence = data.d[userId];
+    } else if (data.t === "PRESENCE_UPDATE") {
+      presence = data.d;
+    } else {
+      return;
     }
-  }, 30000);
-};
 
-socket.onmessage = (event) => {
-  console.log("Message received:", event.data);
-  const data = JSON.parse(event.data);
-  if (!data.t || !data.d) return;
+    if (!presence || !presence.discord_user) {
+      username.textContent = "Benutzer nicht gefunden";
+      statusIcon.innerHTML = "";
+      activity.textContent = "Keine Aktivität";
+      avatar.src = "https://via.placeholder.com/100?text=?";
+      spotifyInfo.textContent = "Keine Spotify-Daten";
+      return;
+    }
 
-  if (data.t === "INIT_STATE") {
-    presence = data.d[userId];
-  } else if (data.t === "PRESENCE_UPDATE") {
-    presence = data.d;
-  } else {
-    return;
-  }
+    const user = presence.discord_user;
+    avatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+    username.textContent = user.username;
 
-  if (!presence || !presence.discord_user) {
-    username.textContent = "Benutzer nicht gefunden";
-    statusIcon.innerHTML = "";
-    activity.textContent = "Keine Aktivität";
-    avatar.src = "https://via.placeholder.com/100?text=?";
-    spotifyInfo.textContent = "Keine Spotify-Daten";
-    return;
-  }
+    updateStatus(presence.discord_status || "offline");
 
-  const user = presence.discord_user;
-  avatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
-  username.textContent = user.username;
+    if (presence.activities && presence.activities.length > 0) {
+      const currentActivity = presence.activities.find(act => act.name && act.name !== "Custom Status");
+      activity.textContent = currentActivity ? `Aktivität: ${currentActivity.name}` : "Keine Aktivität";
+    } else {
+      activity.textContent = "Keine Aktivität";
+    }
 
-  updateStatus(presence.discord_status || "offline");
-
-  if (presence.activities && presence.activities.length > 0) {
-    const currentActivity = presence.activities.find(act => act.name && act.name !== "Custom Status");
-    activity.textContent = currentActivity ? `Aktivität: ${currentActivity.name}` : "Keine Aktivität";
-  } else {
-    activity.textContent = "Keine Aktivität";
-  }
-
-  if (presence.listening_to_spotify) {
-    const { song, artist, album_art_url, track_id } = presence.spotify;
-    spotifyInfo.innerHTML = `
-      <div class="spotify-track">
-        <img src="${album_art_url}" alt="Album Art" />
-        <div>
-          <p class="track-name">${song}</p>
-          <p class="track-artist">${artist}</p>
-          <iframe class="spotify-embed"
-            src="https://open.spotify.com/embed/track/${track_id}"
-            width="100%" height="80" frameborder="0" allowtransparency="true"
-            allow="encrypted-media"></iframe>
+    if (presence.listening_to_spotify) {
+      const { song, artist, album_art_url, track_id } = presence.spotify;
+      spotifyInfo.innerHTML = `
+        <div class="spotify-track">
+          <img src="${album_art_url}" alt="Album Art" />
+          <div>
+            <p class="track-name">${song}</p>
+            <p class="track-artist">${artist}</p>
+            <iframe class="spotify-embed"
+              src="https://open.spotify.com/embed/track/${track_id}"
+              width="100%" height="80" frameborder="0" allowtransparency="true"
+              allow="encrypted-media"></iframe>
+          </div>
         </div>
-      </div>
-    `;
-  } else {
-    spotifyInfo.textContent = "Nicht auf Spotify aktiv";
-  }
-};
+      `;
+    } else {
+      spotifyInfo.textContent = "Nicht auf Spotify aktiv";
+    }
+  };
 
-socket.onerror = (error) => {
-  console.error("WebSocket error:", error);
-};
+  socket.onerror = (error) => {
+    console.error("WebSocket error:", error);
+    // Versuche, die Verbindung nach einem Fehler erneut herzustellen
+    setTimeout(connectWebSocket, 5000);
+  };
 
-socket.onclose = () => {
-  console.log("WebSocket connection closed");
-};
+  socket.onclose = () => {
+    console.log("WebSocket connection closed");
+    // Versuche, die Verbindung nach dem Schließen erneut herzustellen
+    setTimeout(connectWebSocket, 5000);
+  };
+}
+
+// Initialisiere die WebSocket-Verbindung
+connectWebSocket();

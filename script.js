@@ -37,6 +37,7 @@ copyBtn.addEventListener("click", () => {
 const socket = new WebSocket("wss://api.lanyard.rest/socket");
 
 socket.onopen = () => {
+  console.log("WebSocket connection opened");
   socket.send(JSON.stringify({
     op: 2,
     d: {
@@ -51,15 +52,8 @@ socket.onopen = () => {
   }, 30000);
 };
 
-socket.onerror = (error) => {
-  console.error("WebSocket error:", error);
-};
-
-socket.onclose = () => {
-  console.log("WebSocket connection closed");
-};
-
 socket.onmessage = (event) => {
+  console.log("Message received:", event.data);
   const data = JSON.parse(event.data);
   if (!data.t || !data.d) return;
 
@@ -74,7 +68,7 @@ socket.onmessage = (event) => {
   if (!presence || !presence.discord_user) {
     username.textContent = "Benutzer nicht gefunden";
     statusIcon.innerHTML = "";
-    activity.textContent = "";
+    activity.textContent = "Keine Aktivität";
     avatar.src = "https://via.placeholder.com/100?text=?";
     spotifyInfo.textContent = "Keine Spotify-Daten";
     return;
@@ -93,7 +87,7 @@ socket.onmessage = (event) => {
     activity.textContent = "Keine Aktivität";
   }
 
-  if (presence.listening_to_spotify && presence.spotify) {
+  if (presence.listening_to_spotify) {
     const { song, artist, album_art_url, track_id } = presence.spotify;
     spotifyInfo.innerHTML = `
       <div class="spotify-track">
@@ -111,4 +105,12 @@ socket.onmessage = (event) => {
   } else {
     spotifyInfo.textContent = "Nicht auf Spotify aktiv";
   }
+};
+
+socket.onerror = (error) => {
+  console.error("WebSocket error:", error);
+};
+
+socket.onclose = () => {
+  console.log("WebSocket connection closed");
 };

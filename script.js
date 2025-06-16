@@ -26,25 +26,37 @@ copyBtn.addEventListener("click", () => {
   const user = presence.discord_user;
   navigator.clipboard.writeText(user.username).then(() => {
     copyBtn.textContent = "✅";
-    setTimeout(() => (copyBtn.textContent = "📋"), 1500);
+    setTimeout(() => {
+      copyBtn.textContent = "📋";
+    }, 1500);
+  }).catch(err => {
+    console.error("Failed to copy username: ", err);
   });
 });
 
 const socket = new WebSocket("wss://api.lanyard.rest/socket");
 
 socket.onopen = () => {
-  socket.send(
-    JSON.stringify({
-      op: 2,
-      d: {
-        subscribe_to_ids: [userId],
-      },
-    })
-  );
+  socket.send(JSON.stringify({
+    op: 2,
+    d: {
+      subscribe_to_ids: [userId],
+    },
+  }));
 
   setInterval(() => {
-    if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ op: 3 }));
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ op: 3 }));
+    }
   }, 30000);
+};
+
+socket.onerror = (error) => {
+  console.error("WebSocket error:", error);
+};
+
+socket.onclose = () => {
+  console.log("WebSocket connection closed");
 };
 
 socket.onmessage = (event) => {
@@ -76,7 +88,7 @@ socket.onmessage = (event) => {
 
   if (presence.activities && presence.activities.length > 0) {
     const currentActivity = presence.activities.find(act => act.name && act.name !== "Custom Status");
-    activity.textContent = currentActivity ? `Activity: ${currentActivity.name}` : "Keine Aktivität";
+    activity.textContent = currentActivity ? `Aktivität: ${currentActivity.name}` : "Keine Aktivität";
   } else {
     activity.textContent = "Keine Aktivität";
   }

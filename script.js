@@ -16,16 +16,6 @@ function getTextColor(bgColor) {
   return brightness >= 128 ? "#000" : "#fff";
 }
 
-function hexContrast(hex1, hex2) {
-  const toRGB = (hex) => {
-    const val = parseInt(hex.slice(1), 16);
-    return [(val >> 16) & 255, (val >> 8) & 255, val & 255];
-  };
-  const [r1, g1, b1] = toRGB(hex1);
-  const [r2, g2, b2] = toRGB(hex2);
-  return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
-}
-
 function extractMainColor(imgUrl, callback) {
   const img = new Image();
   img.crossOrigin = "anonymous";
@@ -67,6 +57,10 @@ copyBtn.onclick = () => {
   }
 };
 
+// Dummy-Funktion zur Fehlervermeidung
+window.updateThreeWithSpotifyArt = function () {
+};
+
 const ws = new WebSocket("wss://api.lanyard.rest/socket");
 
 ws.onopen = () => {
@@ -82,7 +76,7 @@ ws.onmessage = ({ data }) => {
 
   if (!userPresence?.discord_user) {
     nameEl.textContent = "N/A";
-    avatarEl.src = "https://via.placeholder.com/100?text=?";
+    avatarEl.src = "https://placehold.co/100x100?text=?";
     statusEl.innerHTML = "";
     activityEl.textContent = "";
     return;
@@ -98,7 +92,7 @@ ws.onmessage = ({ data }) => {
 
   if (userPresence.listening_to_spotify && userPresence.spotify) {
     const { song, artist, album_art_url, track_id } = userPresence.spotify;
-    window.updateThreeWithSpotifyArt?.(album_art_url);
+    window.updateThreeWithSpotifyArt(album_art_url);
     spotifyContent.innerHTML = `
       <div class="spotify-track">
         <img src="${album_art_url}" alt="Cover">

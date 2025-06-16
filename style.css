@@ -93,11 +93,12 @@ body {
 }
 
 .spotify {
-  width: 320px;
+  width: 91%;
+  height: 125px;
   background: #2c2f33;
   padding: 1rem;
   border-radius: 10px;
-  margin-left: 7px;
+  margin-left: 0px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.5);
   color: #ccc;
 }

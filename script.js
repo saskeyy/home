@@ -50,7 +50,7 @@ const DISCORD_ID = "446226718844256266";
         avatarEl.src = "https://placehold.co/100x100?text=?";
         statusEl.innerHTML = "";
         activityEl.textContent = "";
-        spotifyContent.innerHTML = "";
+        spotifyContent.textContent = "Not listening to music right now";
         return;
       }
 
@@ -77,7 +77,7 @@ const DISCORD_ID = "446226718844256266";
         spotifyBox.style.backgroundColor = "";
         spotifyBox.style.color = "";
       } else {
-        spotifyContent.innerHTML = "";
+        spotifyContent.textContent = "Not listening to music right now";
         spotifyBox.style.backgroundColor = "";
         spotifyBox.style.color = "";
       }

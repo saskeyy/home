@@ -1,46 +1,29 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Discord Status</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 50px;
-    }
-    #status {
-      font-size: 24px;
-      color: #7289da;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Discord Status Anzeige</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="status">Lade...</div>
+  <div class="card">
+    <img id="avatar" src="https://via.placeholder.com/100?text=?" alt="Avatar" />
+    <div class="user-info">
+      <div class="username-row">
+        <h2 id="username">Lade...</h2>
+        <span id="status-icon"></span>
+      </div>
+      <p id="activity">Keine Aktivität</p>
+    </div>
+    <button id="copyBtn" title="Username kopieren">📋</button>
+  </div>
 
-  <script>
-    const userId = 446226718844256266;
-    const url = "https://api.lanyard.rest/v1/users/446226718844256266";
+  <div id="spotifyContainer" class="spotify">
+    <h3>Spotify</h3>
+    <div id="spotifyInfo">Keine Spotify-Daten</div>
+  </div>
 
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        const statusElement = document.getElementById('status');
-        if (data.data) {
-          const discordData = data.data;
-          let statusMessage = `Status: ${discordData.discord_status}<br>`;
-          if (discordData.listening_to_spotify) {
-            statusMessage += `Hört gerade Spotify: ${discordData.spotify.song}`;
-          }
-          statusElement.innerHTML = statusMessage;
-        } else {
-          statusElement.innerHTML = 'Benutzer nicht gefunden oder API-Fehler.';
-        }
-      })
-      .catch(error => {
-        console.error('Fehler beim Abrufen des Discord-Status:', error);
-        document.getElementById('status').innerHTML = 'Fehler beim Abrufen des Status.';
-      });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

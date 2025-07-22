@@ -1,5 +1,6 @@
 html, body {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 body {
@@ -33,8 +34,7 @@ body::before {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  transform: scale(1.2);
-  transform-origin: center center;
+  transform: none;
 }
 
 .main-container {
@@ -188,8 +188,13 @@ body::before {
 }
 
 @media (max-width: 768px) {
+  html, body {
+    overflow-y: auto;
+  }
+
   .scale-wrapper {
-    transform: scale(1);
+    transform: scale(1.2);
+    transform-origin: center center;
   }
 
   body {

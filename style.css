@@ -192,11 +192,6 @@ body::before {
     overflow-y: auto;
   }
 
-  .scale-wrapper {
-    transform: scale(1.2);
-    transform-origin: center center;
-  }
-
   body {
     padding: 0.5rem;
     align-items: center;

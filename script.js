@@ -68,7 +68,7 @@ ws.onmessage = (event) => {
   const firstActivity = (presence.activities || []).find(a => a.name && a.name !== "Custom Status");
   activityEl.textContent = firstActivity ? `Activity: ${firstActivity.name}` : "No activity";
 
-  // Spotify oder Musik Aktivität (auch Apple Music, WMP, Cider)
+  // Musik Aktivität finden (Spotify/Apple Music/etc.)
   const musicActivity = (presence.activities || []).find(act =>
     act && ["Spotify", "Apple Music", "Windows Media Player", "Cider"].includes(act.name)
   );
@@ -87,8 +87,8 @@ ws.onmessage = (event) => {
       else if (raw.startsWith("https://")) cover = raw;
     }
 
+    // Ausgabe ohne expliziten Dienstnamen
     spotifyInfo.innerHTML = `
-      <b>${musicActivity.name}</b><br>
       ${title} – ${artist}<br>
       ${cover ? `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">` : ""}
     `;

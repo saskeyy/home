@@ -55,7 +55,7 @@ ws.onmessage = (event) => {
     avatarEl.src = "https://via.placeholder.com/100?text=?";
     statusEl.innerHTML = "";
     activityEl.textContent = "No activity";
-    spotifyInfo.textContent = "Not listening to music right now";
+    spotifyInfo.textContent = "";
     spotifyContainer.style.display = "none";
     return;
   }
@@ -68,18 +68,13 @@ ws.onmessage = (event) => {
   const firstActivity = (presence.activities || []).find(a => a.name && a.name !== "Custom Status");
   activityEl.textContent = firstActivity ? `Activity: ${firstActivity.name}` : "No activity";
 
-  // Musik Aktivität finden
+  // Nur Albumcover anzeigen!
   const musicActivity = (presence.activities || []).find(act =>
     act && ["Spotify", "Apple Music", "Windows Media Player", "Cider"].includes(act.name)
   );
 
+  let cover = null;
   if (musicActivity) {
-    let title = musicActivity.details || "Unknown Track";
-    let artist = musicActivity.state || "Unknown Artist";
-    let album = musicActivity.assets?.large_text || "";
-
-    // Cover-URL extrahieren (funktioniert für alles)
-    let cover = "";
     if (presence.listening_to_spotify && presence.spotify) {
       cover = presence.spotify.album_art_url;
     } else if (musicActivity.assets?.large_image) {
@@ -90,16 +85,13 @@ ws.onmessage = (event) => {
         cover = rawImageUrl;
       }
     }
+  }
 
-    spotifyInfo.innerHTML = `
-      ${title} – ${artist}<br>
-      ${album ? `${album}<br>` : ""}
-      ${cover ? `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">` : ""}
-    `;
-
+  if (cover) {
+    spotifyInfo.innerHTML = `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">`;
     spotifyContainer.style.display = "block";
   } else {
-    spotifyInfo.textContent = "Not listening to music right now";
+    spotifyInfo.innerHTML = "";
     spotifyContainer.style.display = "none";
   }
 };

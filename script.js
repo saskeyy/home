@@ -90,7 +90,6 @@ ws.onmessage = (event) => {
     spotifyInfo.innerHTML = `
       <b>${musicActivity.name}</b><br>
       ${title} – ${artist}<br>
-      ${album ? `Album: ${album}<br>` : ""}
       ${cover ? `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">` : ""}
     `;
 

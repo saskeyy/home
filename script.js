@@ -55,8 +55,7 @@ ws.onmessage = (event) => {
     avatarEl.src = "https://via.placeholder.com/100?text=?";
     statusEl.innerHTML = "";
     activityEl.textContent = "No activity";
-    spotifyInfo.textContent = "";
-    spotifyContainer.style.display = "none";
+    spotifyInfo.innerHTML = "";
     return;
   }
 
@@ -87,11 +86,10 @@ ws.onmessage = (event) => {
     }
   }
 
+  // Div bleibt IMMER sichtbar, Bild erscheint NUR wenn Cover da!
   if (cover) {
     spotifyInfo.innerHTML = `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">`;
-    spotifyContainer.style.display = "block";
   } else {
     spotifyInfo.innerHTML = "";
-    spotifyContainer.style.display = "none";
   }
 };

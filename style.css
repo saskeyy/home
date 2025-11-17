@@ -120,7 +120,6 @@ body::before {
 
 .spotify {
   width: 91%;
-  height: 125px;
   background: #2c2f33;
   padding: 1rem;
   border-radius: 10px;
@@ -132,6 +131,20 @@ body::before {
 .spotify h3 {
   margin: 0 0 0.5rem 0;
   font-weight: 600;
+}
+
+.spotify-track-container {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.spotify-track-container img {
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .spotify-track {
@@ -148,6 +161,12 @@ body::before {
   flex-shrink: 0;
 }
 
+.track-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
 .track-name, .track-artist {
   margin: 0;
 }
@@ -155,11 +174,13 @@ body::before {
 .track-name {
   font-weight: 700;
   font-size: 1rem;
+  color: #fff;
 }
 
 .track-artist {
   font-size: 0.85rem;
   color: #999;
+  margin-top: 0.25rem;
 }
 
 .spotify-embed {
@@ -209,7 +230,6 @@ body::before {
   }
 
   .card,
-  .spotify,
   .cat-container {
     width: 100%;
     max-width: 320px;
@@ -217,6 +237,11 @@ body::before {
     flex-direction: column;
     align-items: center;
     text-align: center;
+  }
+
+  .spotify {
+    width: 100%;
+    max-width: 320px;
   }
 
   .username-row {
@@ -233,10 +258,15 @@ body::before {
     font-size: 0.8rem;
   }
 
-  .spotify-track {
+  .spotify-track-container {
     flex-direction: column;
     align-items: center;
     text-align: center;
+  }
+
+  .spotify-track-container img {
+    width: 100px;
+    height: 100px;
   }
 
   .track-name,

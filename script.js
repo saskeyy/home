@@ -1,4 +1,4 @@
-const DISCORD_ID = "446226718844256266";
+const DISCORD_ID = "446226718844256266"; // Deine Discord-ID
 
 const avatarEl = document.getElementById("avatar");
 const usernameEl = document.getElementById("username");
@@ -68,7 +68,7 @@ ws.onmessage = (event) => {
   const firstActivity = (presence.activities || []).find(a => a.name && a.name !== "Custom Status");
   activityEl.textContent = firstActivity ? `Activity: ${firstActivity.name}` : "No activity";
 
-  // Musik Aktivität finden (Spotify/Apple Music/etc.)
+  // Musik Aktivität finden
   const musicActivity = (presence.activities || []).find(act =>
     act && ["Spotify", "Apple Music", "Windows Media Player", "Cider"].includes(act.name)
   );
@@ -77,19 +77,23 @@ ws.onmessage = (event) => {
     let title = musicActivity.details || "Unknown Track";
     let artist = musicActivity.state || "Unknown Artist";
     let album = musicActivity.assets?.large_text || "";
-    let cover = null;
 
+    // Cover-URL extrahieren (funktioniert für alles)
+    let cover = "";
     if (presence.listening_to_spotify && presence.spotify) {
       cover = presence.spotify.album_art_url;
     } else if (musicActivity.assets?.large_image) {
-      const raw = musicActivity.assets.large_image;
-      if (raw.startsWith("/https/")) cover = "https://" + raw.slice(7);
-      else if (raw.startsWith("https://")) cover = raw;
+      const rawImageUrl = musicActivity.assets.large_image;
+      if (rawImageUrl.startsWith("/https/")) {
+        cover = "https://" + rawImageUrl.substring(7);
+      } else if (rawImageUrl.startsWith("https://")) {
+        cover = rawImageUrl;
+      }
     }
 
-    // Ausgabe ohne expliziten Dienstnamen
     spotifyInfo.innerHTML = `
       ${title} – ${artist}<br>
+      ${album ? `${album}<br>` : ""}
       ${cover ? `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">` : ""}
     `;
 

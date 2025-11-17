@@ -34,7 +34,7 @@ body::before {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  transform: none;
+  transform: scale(1.25);
 }
 
 .main-container {
@@ -120,7 +120,7 @@ body::before {
 
 .spotify {
   width: 91%;
-  height: 100px;
+  height: 125px;
   background: #2c2f33;
   padding: 1rem;
   border-radius: 10px;
@@ -227,6 +227,10 @@ body::before {
     padding: 0.5rem;
     align-items: center;
     justify-content: flex-start;
+  }
+
+  .scale-wrapper {
+    transform: scale(1);
   }
 
   .main-container {

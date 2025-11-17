@@ -55,7 +55,7 @@ ws.onmessage = (event) => {
     avatarEl.src = "https://via.placeholder.com/100?text=?";
     statusEl.innerHTML = "";
     activityEl.textContent = "No activity";
-    spotifyInfo.innerHTML = "";
+    spotifyInfo.innerHTML = "Not listening to music right now";
     return;
   }
 
@@ -67,67 +67,70 @@ ws.onmessage = (event) => {
   const firstActivity = (presence.activities || []).find(a => a.name && a.name !== "Custom Status");
   activityEl.textContent = firstActivity ? `Activity: ${firstActivity.name}` : "No activity";
 
-  // Suche nach Musikaktivität (Spotify, Apple Music, etc.)
+  // Musik-Aktivität erkennen (Spotify, Apple Music, etc.)
   const musicActivity = (presence.activities || []).find(act =>
     act && ["Spotify", "Apple Music", "Windows Media Player", "Cider"].includes(act.name)
   );
 
   if (musicActivity) {
-    // Falls Spotify, nutze den speziellen Spotify-Datenpfad mit album_art_url
+    let cover = null;
+    let title = null;
+    let artist = null;
+
+    // Spotify (spezielle Behandlung über listening_to_spotify)
     if (presence.listening_to_spotify && presence.spotify) {
-      spotifyInfo.innerHTML = `
-        <img src="${presence.spotify.album_art_url}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">
-        <p style="margin: 0.5em 0 0; font-weight: bold;">${presence.spotify.song}</p>
-        <p style="margin: 0;">${presence.spotify.artist}</p>
-      `;
+      cover = presence.spotify.album_art_url;
+      title = presence.spotify.song;
+      artist = presence.spotify.artist;
     } 
-    // Für andere Musikdienste wie Apple Music
-    else if (musicActivity.name === "Apple Music" && musicActivity.assets && musicActivity.timestamps) {
-      // Coverbild aus large_image (Discord gibt oft "spotify:album:albumID" oder Pfade zurück), hier versuchen wir die URL richtig darzustellen
-      let cover = null;
-      const rawImageUrl = musicActivity.assets.large_image;
-      if (rawImageUrl) {
-        if (rawImageUrl.startsWith("/https/")) {
-          cover = "https://" + rawImageUrl.substring(7);
-        } else if (rawImageUrl.startsWith("https://")) {
-          cover = rawImageUrl;
-        }
-      }
-
-      // Titel und Künstler aus details und state
-      const title = musicActivity.details || "";
-      const artist = musicActivity.state || "";
-
-      spotifyInfo.innerHTML = `
-        ${cover ? `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">` : ""}
-        <p style="margin: 0.5em 0 0; font-weight: bold;">${title}</p>
-        <p style="margin: 0;">${artist}</p>
-      `;
-    } 
-    // Fallback für andere unterstützte Player (ohne Spotify-Datenstruktur)
+    // Apple Music und andere Musik-Player
     else {
-      let cover = null;
-      const rawImageUrl = musicActivity.assets?.large_image;
-      if (rawImageUrl) {
-        if (rawImageUrl.startsWith("/https/")) {
+      // Titel und Artist aus details/state extrahieren
+      title = musicActivity.details || null;
+      artist = musicActivity.state || null;
+
+      // Cover-Bild aus assets extrahieren
+      if (musicActivity.assets?.large_image) {
+        const rawImageUrl = musicActivity.assets.large_image;
+        if (rawImageUrl.startsWith("mp:")) {
+          // Discord Media Proxy Format
+          cover = `https://media.discordapp.net/${rawImageUrl}`;
+        } else if (rawImageUrl.startsWith("/https/")) {
+          // External URL Format (verwendet von einigen Rich Presence Apps)
           cover = "https://" + rawImageUrl.substring(7);
-        } else if (rawImageUrl.startsWith("https://")) {
+        } else if (rawImageUrl.startsWith("https://") || rawImageUrl.startsWith("http://")) {
+          // Direkter URL
           cover = rawImageUrl;
         }
       }
-
-      const title = musicActivity.details || "Unknown Title";
-      const artist = musicActivity.state || "Unknown Artist";
-
-      spotifyInfo.innerHTML = `
-        ${cover ? `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">` : ""}
-        <p style="margin: 0.5em 0 0; font-weight: bold;">${title}</p>
-        <p style="margin: 0;">${artist}</p>
-      `;
     }
 
+    // HTML für Musik-Anzeige generieren
+    let html = "";
+    if (cover) {
+      html += `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">`;
+    }
+    if (title || artist) {
+      html += `<div style="margin-top: 8px;">`;
+      if (title) html += `<p style="margin: 4px 0; font-weight: bold;">${title}</p>`;
+      if (artist) html += `<p style="margin: 4px 0; color: #888;">${artist}</p>`;
+      html += `</div>`;
+    }
+
+    spotifyInfo.innerHTML = html || "Listening to music";
   } else {
-    // Keine Musikaktivität
     spotifyInfo.innerHTML = "Not listening to music right now";
   }
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket Error:", error);
+  spotifyInfo.innerHTML = "Connection error";
+};
+
+ws.onclose = () => {
+  console.log("WebSocket connection closed");
+  setTimeout(() => {
+    window.location.reload(); // Automatischer Reconnect nach 5 Sekunden
+  }, 5000);
 };

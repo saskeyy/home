@@ -5,8 +5,8 @@ const nameEl = document.getElementById("username");
 const statusEl = document.getElementById("status-icon");
 const activityEl = document.getElementById("activity");
 const copyBtn = document.getElementById("copyBtn");
-const spotifyBox = document.getElementById("spotifyContainer");
-const spotifyContent = document.getElementById("spotifyInfo");
+const musicBox = document.getElementById("musicContainer");
+const musicContent = document.getElementById("musicInfo");
 
 let userPresence = null;
 
@@ -29,7 +29,7 @@ copyBtn.onclick = () => {
   }
 };
 
-window.updateThreeWithSpotifyArt = window.updateThreeWithSpotifyArt || function () {};
+window.updateThreeWithMusicArt = window.updateThreeWithMusicArt || function () {};
 
 const ws = new WebSocket("wss://api.lanyard.rest/socket");
 
@@ -49,7 +49,7 @@ ws.onmessage = ({ data }) => {
     avatarEl.src = "https://placehold.co/100x100?text=?";
     statusEl.innerHTML = "";
     activityEl.textContent = "";
-    spotifyContent.textContent = "Not listening to music right now";
+    musicContent.textContent = "Not listening to music right now";
     return;
   }
 
@@ -61,22 +61,36 @@ ws.onmessage = ({ data }) => {
   const act = (userPresence.activities || []).find(a => a.name && a.name !== "Custom Status");
   activityEl.textContent = act ? `Activity: ${act.name}` : "No activity";
 
-  if (userPresence.listening_to_spotify && userPresence.spotify) {
-    const { album_art_url, track_id } = userPresence.spotify;
-    window.updateThreeWithSpotifyArt(album_art_url);
+  // Apple Music Erkennung
+  const appleMusicActivity = (userPresence.activities || []).find(
+    (act) => act.name === "Apple Music" || act.name === "iTunes"
+  );
 
-    spotifyContent.innerHTML = '';
-    spotifyContent.innerHTML = `
-      <iframe class="spotify-embed" src="https://open.spotify.com/embed/track/${track_id}"
-        width="100%" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+  if (appleMusicActivity) {
+    const { details: song, state: artist, assets } = appleMusicActivity;
+    const album = assets?.large_text || "";
+    const albumArtUrl = assets?.large_image ? `https://cdn.discordapp.com/app-assets/1155948779563610172/${assets.large_image}.png` : "";
+
+    window.updateThreeWithMusicArt(albumArtUrl);
+
+    musicContent.innerHTML = '';
+    musicContent.innerHTML = `
+      <div class="music-info">
+        <img src="${albumArtUrl}" alt="Album Art" class="album-art" />
+        <div class="music-text">
+          <h3>${song}</h3>
+          <p>${artist}</p>
+          <p>${album}</p>
+        </div>
+      </div>
     `;
 
-    spotifyBox.style.backgroundColor = "";
-    spotifyBox.style.color = "";
+    musicBox.style.backgroundColor = "";
+    musicBox.style.color = "";
   } else {
-    spotifyContent.textContent = "Not listening to music right now";
-    spotifyBox.style.backgroundColor = "";
-    spotifyBox.style.color = "";
+    musicContent.textContent = "Not listening to music right now";
+    musicBox.style.backgroundColor = "";
+    musicBox.style.color = "";
   }
 };
 

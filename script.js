@@ -1,104 +1,102 @@
 const DISCORD_ID = "446226718844256266";
 
 const avatarEl = document.getElementById("avatar");
-const nameEl = document.getElementById("username");
+const usernameEl = document.getElementById("username");
 const statusEl = document.getElementById("status-icon");
 const activityEl = document.getElementById("activity");
+const spotifyContainer = document.getElementById("spotifyContainer");
+const spotifyInfo = document.getElementById("spotifyInfo");
 const copyBtn = document.getElementById("copyBtn");
-const musicBox = document.getElementById("musicContainer");
-const musicContent = document.getElementById("musicInfo");
 
-let userPresence = null;
+const statusColors = {
+  online: "#43b581",
+  idle: "#faa61a",
+  dnd: "#f04747",
+  offline: "#747f8d"
+};
 
-function showStatusIcon(state) {
-  const icons = {
-    online: "#43b581",
-    idle: "#faa61a",
-    dnd: "#f04747",
-    offline: "#747f8d",
-  };
-  statusEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${icons[state] || icons.offline}"><circle cx="12" cy="12" r="10"/></svg>`;
+function showStatusIcon(status) {
+  const color = statusColors[status] || statusColors.offline;
+  statusEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${color}"><circle cx="12" cy="12" r="10"/></svg>`;
 }
 
+copyBtn.textContent = "📋";
+copyBtn.style.cursor = "pointer";
+copyBtn.title = "Username kopieren";
 copyBtn.onclick = () => {
-  if (userPresence?.discord_user?.username) {
-    navigator.clipboard.writeText(userPresence.discord_user.username).then(() => {
+  if (usernameEl.textContent && usernameEl.textContent !== "Lade..." && usernameEl.textContent !== "N/A") {
+    navigator.clipboard.writeText(usernameEl.textContent).then(() => {
       copyBtn.textContent = "✅";
       setTimeout(() => (copyBtn.textContent = "📋"), 1500);
     });
   }
 };
 
-window.updateThreeWithMusicArt = window.updateThreeWithMusicArt || function () {};
-
 const ws = new WebSocket("wss://api.lanyard.rest/socket");
 
 ws.onopen = () => {
   ws.send(JSON.stringify({ op: 2, d: { subscribe_to_ids: [DISCORD_ID] } }));
-  setInterval(() => ws.readyState === 1 && ws.send(JSON.stringify({ op: 3 })), 30000);
+  setInterval(() => {
+    if (ws.readyState === 1) ws.send(JSON.stringify({ op: 3 }));
+  }, 30000);
 };
 
-ws.onmessage = ({ data }) => {
-  const { t, d } = JSON.parse(data);
-  if (!t || !d) return;
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  if (!data.t || !data.d) return;
 
-  userPresence = t === "INIT_STATE" ? d[DISCORD_ID] : d;
+  let presence;
+  if (data.t === "INIT_STATE") presence = data.d[DISCORD_ID];
+  else if (data.t === "PRESENCE_UPDATE") presence = data.d;
+  else return;
 
-  if (!userPresence?.discord_user) {
-    nameEl.textContent = "N/A";
-    avatarEl.src = "https://placehold.co/100x100?text=?";
+  if (!presence?.discord_user) {
+    usernameEl.textContent = "N/A";
+    avatarEl.src = "https://via.placeholder.com/100?text=?";
     statusEl.innerHTML = "";
-    activityEl.textContent = "";
-    musicContent.textContent = "Not listening to music right now";
+    activityEl.textContent = "No activity";
+    spotifyInfo.textContent = "Not listening to music right now";
+    spotifyContainer.style.display = "none";
     return;
   }
 
-  const { username: name, id, avatar } = userPresence.discord_user;
-  avatarEl.src = `https://cdn.discordapp.com/avatars/${id}/${avatar}.png`;
-  nameEl.textContent = name;
-  showStatusIcon(userPresence.discord_status || "offline");
+  const user = presence.discord_user;
+  usernameEl.textContent = user.username;
+  avatarEl.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+  showStatusIcon(presence.discord_status || "offline");
 
-  const act = (userPresence.activities || []).find(a => a.name && a.name !== "Custom Status");
-  activityEl.textContent = act ? `Activity: ${act.name}` : "No activity";
+  const firstActivity = (presence.activities || []).find(a => a.name && a.name !== "Custom Status");
+  activityEl.textContent = firstActivity ? `Activity: ${firstActivity.name}` : "No activity";
 
-  // Apple Music Erkennung
-  const appleMusicActivity = (userPresence.activities || []).find(
-    (act) => act.name === "Apple Music" || act.name === "iTunes"
+  // Spotify oder Musik Aktivität (auch Apple Music, WMP, Cider)
+  const musicActivity = (presence.activities || []).find(act =>
+    act && ["Spotify", "Apple Music", "Windows Media Player", "Cider"].includes(act.name)
   );
 
-  if (appleMusicActivity) {
-    const { details: song, state: artist, assets } = appleMusicActivity;
-    const album = assets?.large_text || "";
-    const albumArtUrl = assets?.large_image ? `https://cdn.discordapp.com/app-assets/1155948779563610172/${assets.large_image}.png` : "";
+  if (musicActivity) {
+    let title = musicActivity.details || "Unknown Track";
+    let artist = musicActivity.state || "Unknown Artist";
+    let album = musicActivity.assets?.large_text || "";
+    let cover = null;
 
-    window.updateThreeWithMusicArt(albumArtUrl);
+    if (presence.listening_to_spotify && presence.spotify) {
+      cover = presence.spotify.album_art_url;
+    } else if (musicActivity.assets?.large_image) {
+      const raw = musicActivity.assets.large_image;
+      if (raw.startsWith("/https/")) cover = "https://" + raw.slice(7);
+      else if (raw.startsWith("https://")) cover = raw;
+    }
 
-    musicContent.innerHTML = '';
-    musicContent.innerHTML = `
-      <div class="music-info">
-        <img src="${albumArtUrl}" alt="Album Art" class="album-art" />
-        <div class="music-text">
-          <h3>${song}</h3>
-          <p>${artist}</p>
-          <p>${album}</p>
-        </div>
-      </div>
+    spotifyInfo.innerHTML = `
+      <b>${musicActivity.name}</b><br>
+      ${title} – ${artist}<br>
+      ${album ? `Album: ${album}<br>` : ""}
+      ${cover ? `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">` : ""}
     `;
 
-    musicBox.style.backgroundColor = "";
-    musicBox.style.color = "";
+    spotifyContainer.style.display = "block";
   } else {
-    musicContent.textContent = "Not listening to music right now";
-    musicBox.style.backgroundColor = "";
-    musicBox.style.color = "";
+    spotifyInfo.textContent = "Not listening to music right now";
+    spotifyContainer.style.display = "none";
   }
 };
-
-document.getElementById('copyBtn').addEventListener('click', () => {
-  const username = document.getElementById('username').textContent;
-  navigator.clipboard.writeText(username).then(() => {
-    alert('Username copied!');
-  }).catch(() => {
-    alert('Kopieren fehlgeschlagen.');
-  });
-});

@@ -129,25 +129,30 @@ ws.onmessage = (event) => {
       }
     }
 
-    // HTML für Musik-Anzeige generieren
+    // HTML für Musik-Anzeige generieren (Bild links, Text rechts)
     let html = "";
+    
     if (cover) {
-      html += `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px; display: block;">`;
+      html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
     }
+    
     if (title || artist) {
-      html += `<div style="margin-top: 8px;">`;
-      if (title) html += `<p style="margin: 4px 0; font-weight: bold; color: #fff;">${title}</p>`;
-      if (artist) html += `<p style="margin: 4px 0; color: #aaa; font-size: 0.95em;">${artist}</p>`;
+      html += `<div class="track-info">`;
+      if (title) html += `<p class="track-name">${title}</p>`;
+      if (artist) html += `<p class="track-artist">${artist}</p>`;
       html += `</div>`;
     }
 
     if (html) {
       spotifyInfo.innerHTML = html;
+      spotifyInfo.className = "spotify-track-container";
     } else {
       spotifyInfo.innerHTML = "Listening to music";
+      spotifyInfo.className = "";
     }
   } else {
     spotifyInfo.innerHTML = "Not listening to music right now";
+    spotifyInfo.className = "";
   }
 };
 

@@ -67,29 +67,67 @@ ws.onmessage = (event) => {
   const firstActivity = (presence.activities || []).find(a => a.name && a.name !== "Custom Status");
   activityEl.textContent = firstActivity ? `Activity: ${firstActivity.name}` : "No activity";
 
-  // Nur Albumcover anzeigen!
+  // Suche nach Musikaktivität (Spotify, Apple Music, etc.)
   const musicActivity = (presence.activities || []).find(act =>
     act && ["Spotify", "Apple Music", "Windows Media Player", "Cider"].includes(act.name)
   );
 
-  let cover = null;
   if (musicActivity) {
+    // Falls Spotify, nutze den speziellen Spotify-Datenpfad mit album_art_url
     if (presence.listening_to_spotify && presence.spotify) {
-      cover = presence.spotify.album_art_url;
-    } else if (musicActivity.assets?.large_image) {
+      spotifyInfo.innerHTML = `
+        <img src="${presence.spotify.album_art_url}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">
+        <p style="margin: 0.5em 0 0; font-weight: bold;">${presence.spotify.song}</p>
+        <p style="margin: 0;">${presence.spotify.artist}</p>
+      `;
+    } 
+    // Für andere Musikdienste wie Apple Music
+    else if (musicActivity.name === "Apple Music" && musicActivity.assets && musicActivity.timestamps) {
+      // Coverbild aus large_image (Discord gibt oft "spotify:album:albumID" oder Pfade zurück), hier versuchen wir die URL richtig darzustellen
+      let cover = null;
       const rawImageUrl = musicActivity.assets.large_image;
-      if (rawImageUrl.startsWith("/https/")) {
-        cover = "https://" + rawImageUrl.substring(7);
-      } else if (rawImageUrl.startsWith("https://")) {
-        cover = rawImageUrl;
+      if (rawImageUrl) {
+        if (rawImageUrl.startsWith("/https/")) {
+          cover = "https://" + rawImageUrl.substring(7);
+        } else if (rawImageUrl.startsWith("https://")) {
+          cover = rawImageUrl;
+        }
       }
-    }
-  }
 
-  // Div bleibt IMMER sichtbar, Bild erscheint NUR wenn Cover da!
-  if (cover) {
-    spotifyInfo.innerHTML = `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">`;
+      // Titel und Künstler aus details und state
+      const title = musicActivity.details || "";
+      const artist = musicActivity.state || "";
+
+      spotifyInfo.innerHTML = `
+        ${cover ? `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">` : ""}
+        <p style="margin: 0.5em 0 0; font-weight: bold;">${title}</p>
+        <p style="margin: 0;">${artist}</p>
+      `;
+    } 
+    // Fallback für andere unterstützte Player (ohne Spotify-Datenstruktur)
+    else {
+      let cover = null;
+      const rawImageUrl = musicActivity.assets?.large_image;
+      if (rawImageUrl) {
+        if (rawImageUrl.startsWith("/https/")) {
+          cover = "https://" + rawImageUrl.substring(7);
+        } else if (rawImageUrl.startsWith("https://")) {
+          cover = rawImageUrl;
+        }
+      }
+
+      const title = musicActivity.details || "Unknown Title";
+      const artist = musicActivity.state || "Unknown Artist";
+
+      spotifyInfo.innerHTML = `
+        ${cover ? `<img src="${cover}" alt="Album Art" style="max-width: 100%; border-radius: 8px; margin-top: 8px;">` : ""}
+        <p style="margin: 0.5em 0 0; font-weight: bold;">${title}</p>
+        <p style="margin: 0;">${artist}</p>
+      `;
+    }
+
   } else {
-    spotifyInfo.innerHTML = "";
+    // Keine Musikaktivität
+    spotifyInfo.innerHTML = "Not listening to music right now";
   }
 };

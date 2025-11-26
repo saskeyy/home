@@ -20,14 +20,14 @@ function showStatusIcon(status) {
   statusEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${color}">ircle cx="12" cy="12" r="10"/></svg>`;
 }
 
-copyBtn.innerHTML = "📋";
-copyBtn.style.cursor = "pointer";
+copyBtn.textContent = "Copy username";
 copyBtn.title = "Copy username";
 copyBtn.onclick = () => {
-  if (usernameEl.textContent && usernameEl.textContent !== "Lade..." && usernameEl.textContent !== "N/A") {
+  if (usernameEl.textContent && usernameEl.textContent !== "Loading..." && usernameEl.textContent !== "N/A") {
     navigator.clipboard.writeText(usernameEl.textContent).then(() => {
-      copyBtn.innerHTML = "✅";
-      setTimeout(() => (copyBtn.innerHTML = "📋"), 1500);
+      const originalText = copyBtn.textContent;
+      copyBtn.textContent = "✅ Copied!";
+      setTimeout(() => (copyBtn.textContent = originalText), 1500);
     });
   }
 };
@@ -130,6 +130,9 @@ ws.onmessage = (event) => {
   const user = presence.discord_user;
   usernameEl.textContent = user.username;
   avatarEl.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+  
+  // Status anzeigen
+  console.log("Discord Status:", presence.discord_status);
   showStatusIcon(presence.discord_status || "offline");
 
   const firstActivity = (presence.activities || []).find(a => a.name && a.name !== "Custom Status");

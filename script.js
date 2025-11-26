@@ -1,4 +1,4 @@
-const DISCORD_ID = "446226718844256266"; // Deine Discord-ID
+const DISCORD_ID = "446226718844256266";
 
 const avatarEl = document.getElementById("avatar");
 const usernameEl = document.getElementById("username");
@@ -38,7 +38,6 @@ function parseAlbumArtUrl(rawImageUrl) {
 
   let albumArtUrl = "";
 
-  // Format 1: /https/ (externe URLs die escaped sind)
   const indicatorHttps = "/https/";
   const idxHttps = rawImageUrl.indexOf(indicatorHttps);
   if (idxHttps !== -1) {
@@ -46,18 +45,15 @@ function parseAlbumArtUrl(rawImageUrl) {
     return albumArtUrl;
   }
 
-  // Format 2: Direct https:// or http://
   if (rawImageUrl.startsWith("https://") || rawImageUrl.startsWith("http://")) {
     return rawImageUrl;
   }
 
-  // Format 3: mp: (Discord Media Proxy)
   if (rawImageUrl.startsWith("mp:")) {
     albumArtUrl = "https://media.discordapp.net/" + rawImageUrl;
     return albumArtUrl;
   }
 
-  // Format 4: Relative URL (starts with /)
   if (rawImageUrl.startsWith("/")) {
     albumArtUrl = "https://cdn.discordapp.com" + rawImageUrl;
     return albumArtUrl;
@@ -99,7 +95,6 @@ ws.onopen = () => {
     if (ws.readyState === 1) ws.send(JSON.stringify({ op: 3 }));
   }, 30000);
 
-  // Update Zeit alle 500ms
   setInterval(() => {
     if (musicActivityData && presenceData) {
       updateMusicDisplay(musicActivityData, presenceData);
@@ -133,10 +128,8 @@ ws.onmessage = (event) => {
   const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
   avatarEl.src = avatarUrl;
   
-  // Favicon aktualisieren
   faviconEl.href = avatarUrl;
   
-  // Status anzeigen
   const status = presence.discord_status || "offline";
   console.log("Discord Status:", status);
   showStatusIcon(status);
@@ -144,7 +137,6 @@ ws.onmessage = (event) => {
   const firstActivity = (presence.activities || []).find(a => a.name && a.name !== "Custom Status");
   activityEl.textContent = firstActivity ? `Activity: ${firstActivity.name}` : "No activity";
 
-  // Musik-Aktivität erkennen (Spotify, Apple Music, etc.)
   const musicActivity = (presence.activities || []).find(act =>
     act && ["Spotify", "Apple Music", "Windows Media Player", "Cider", "iTunes"].includes(act.name)
   );
@@ -166,7 +158,6 @@ function updateMusicDisplay(musicActivity, presence) {
   let album = null;
   let duration = null;
 
-  // Spotify (spezielle Behandlung über listening_to_spotify)
   if (presence.listening_to_spotify && presence.spotify) {
     cover = presence.spotify.album_art_url;
     title = presence.spotify.song;
@@ -174,18 +165,14 @@ function updateMusicDisplay(musicActivity, presence) {
     album = presence.spotify.album;
     duration = formatDuration((presence.spotify.end_timestamp || 0) - (presence.spotify.start_timestamp || 0));
   } 
-  // Apple Music und andere Musik-Player
   else {
-    // Titel und Artist aus details/state extrahieren
     title = musicActivity.details || null;
     artist = musicActivity.state || null;
     
-    // Album aus assets.large_text extrahieren
     if (musicActivity.assets?.large_text) {
       album = musicActivity.assets.large_text;
     }
     
-    // Duration mit Live-Update aus timestamps
     if (musicActivity.timestamps?.start && musicActivity.timestamps?.end) {
       duration = getCurrentDuration(musicActivity.timestamps.start, musicActivity.timestamps.end);
     } else if (musicActivity.timestamps?.end) {
@@ -193,14 +180,12 @@ function updateMusicDisplay(musicActivity, presence) {
       duration = formatDuration(totalMs);
     }
 
-    // Cover-Bild aus assets extrahieren und URL konvertieren
     if (musicActivity.assets?.large_image) {
       const rawImageUrl = musicActivity.assets.large_image;
       cover = parseAlbumArtUrl(rawImageUrl);
     }
   }
 
-  // HTML für Musik-Anzeige generieren (Bild links, Text rechts)
   let html = "";
   
   if (cover) {

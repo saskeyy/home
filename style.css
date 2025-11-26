@@ -82,6 +82,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
 }
 
 #username {
@@ -90,37 +91,39 @@ body::before {
   font-weight: 700;
 }
 
+#status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 #status-icon svg {
   width: 18px;
   height: 18px;
+}
+
+#copyBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9rem;
+  color: #bbb;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+#copyBtn:hover {
+  color: #fff;
+  background: transparent;
 }
 
 #activity {
   margin: 0.25rem 0 0 0;
   font-size: 0.9rem;
   color: #bbb;
-}
-
-#copyBtn {
-  position: absolute;
-  left: -10px;
-  top: 0;
-  width: 30%;
-  height: 100%;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  opacity: 0;
-  z-index: 0;
-  pointer-events: auto;
-  padding: 0;
-  margin: 0;
-  font-size: 0;
-}
-
-#copyBtn:hover {
-  opacity: 1;
-  background: transparent;
 }
 
 .spotify {

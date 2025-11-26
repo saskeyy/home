@@ -20,14 +20,14 @@ function showStatusIcon(status) {
   statusEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${color}">ircle cx="12" cy="12" r="10"/></svg>`;
 }
 
-copyBtn.textContent = "📋";
+copyBtn.innerHTML = "📋";
 copyBtn.style.cursor = "pointer";
-copyBtn.title = "Username kopieren";
+copyBtn.title = "Copy username";
 copyBtn.onclick = () => {
   if (usernameEl.textContent && usernameEl.textContent !== "Lade..." && usernameEl.textContent !== "N/A") {
     navigator.clipboard.writeText(usernameEl.textContent).then(() => {
-      copyBtn.textContent = "✅";
-      setTimeout(() => (copyBtn.textContent = "📋"), 1500);
+      copyBtn.innerHTML = "✅";
+      setTimeout(() => (copyBtn.innerHTML = "📋"), 1500);
     });
   }
 };

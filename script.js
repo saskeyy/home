@@ -22,7 +22,6 @@ function showStatusIcon(status) {
   statusEl.style.backgroundColor = color;
 }
 
-copyBtn.textContent = "Copy username";
 copyBtn.title = "Copy username";
 copyBtn.onclick = () => {
   if (usernameEl.textContent && usernameEl.textContent !== "Loading..." && usernameEl.textContent !== "N/A") {

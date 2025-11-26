@@ -165,7 +165,7 @@ body::before {
   overflow: hidden;
 }
 
-.track-name, .track-artist {
+.track-name, .track-artist, .track-album, .track-duration {
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -183,6 +183,20 @@ body::before {
   font-size: 0.85rem;
   color: #999;
   margin-top: 0.25rem;
+  line-height: 1.2;
+}
+
+.track-album {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.15rem;
+  line-height: 1.2;
+}
+
+.track-duration {
+  font-size: 0.75rem;
+  color: #777;
+  margin-top: 0.1rem;
   line-height: 1.2;
 }
 
@@ -294,7 +308,9 @@ body::before {
   }
 
   .track-name,
-  .track-artist {
+  .track-artist,
+  .track-album,
+  .track-duration {
     text-align: center;
     white-space: normal;
   }

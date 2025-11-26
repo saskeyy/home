@@ -91,19 +91,20 @@ body::before {
 }
 
 #status-icon {
-  width: 20px;
-  height: 20px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   margin-left: 0.25rem;
+  background-color: #747f8d;
+  border: 1.5px solid rgba(44, 47, 51, 0.75);
 }
 
 #status-icon svg {
-  width: 14px;
-  height: 14px;
+  display: none;
 }
 
 #copyBtn {

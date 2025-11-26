@@ -73,6 +73,23 @@ function formatDuration(ms) {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
+function getCurrentDuration(startTime, endTime) {
+  if (!startTime || !endTime) return "";
+  const now = Date.now();
+  const elapsed = Math.max(0, now - startTime);
+  const total = endTime - startTime;
+  const elapsedSec = Math.floor(elapsed / 1000);
+  const totalSec = Math.floor(total / 1000);
+  const elapsedMin = Math.floor(elapsedSec / 60);
+  const elapsedS = elapsedSec % 60;
+  const totalMin = Math.floor(totalSec / 60);
+  const totalS = totalSec % 60;
+  return `${elapsedMin}:${elapsedS.toString().padStart(2, '0')} / ${totalMin}:${totalS.toString().padStart(2, '0')}`;
+}
+
+let musicActivityData = null;
+let presenceData = null;
+
 const ws = new WebSocket("wss://api.lanyard.rest/socket");
 
 ws.onopen = () => {
@@ -80,6 +97,13 @@ ws.onopen = () => {
   setInterval(() => {
     if (ws.readyState === 1) ws.send(JSON.stringify({ op: 3 }));
   }, 30000);
+
+  // Update Zeit alle 500ms
+  setInterval(() => {
+    if (musicActivityData && presenceData) {
+      updateMusicDisplay(musicActivityData, presenceData);
+    }
+  }, 500);
 };
 
 ws.onmessage = (event) => {
@@ -91,12 +115,15 @@ ws.onmessage = (event) => {
   else if (data.t === "PRESENCE_UPDATE") presence = data.d;
   else return;
 
+  presenceData = presence;
+
   if (!presence?.discord_user) {
     usernameEl.textContent = "N/A";
     avatarEl.src = "https://via.placeholder.com/100?text=?";
     statusEl.innerHTML = "";
     activityEl.textContent = "No activity";
     spotifyInfo.innerHTML = "Not listening to music right now";
+    musicActivityData = null;
     return;
   }
 
@@ -114,72 +141,80 @@ ws.onmessage = (event) => {
   );
 
   if (musicActivity) {
-    let cover = null;
-    let title = null;
-    let artist = null;
-    let album = null;
-    let duration = null;
-
-    // Spotify (spezielle Behandlung über listening_to_spotify)
-    if (presence.listening_to_spotify && presence.spotify) {
-      cover = presence.spotify.album_art_url;
-      title = presence.spotify.song;
-      artist = presence.spotify.artist;
-      album = presence.spotify.album;
-      duration = presence.spotify.song_id ? null : null; // Spotify nutzt song_id, nicht duration
-    } 
-    // Apple Music und andere Musik-Player
-    else {
-      // Titel und Artist aus details/state extrahieren
-      title = musicActivity.details || null;
-      artist = musicActivity.state || null;
-      
-      // Album aus party.id oder assets extrahieren
-      if (musicActivity.party?.id) {
-        album = musicActivity.party.id;
-      }
-      
-      // Duration aus timestamps extrahieren
-      if (musicActivity.timestamps?.end) {
-        const durationMs = musicActivity.timestamps.end - (musicActivity.timestamps.start || 0);
-        duration = formatDuration(durationMs);
-      }
-
-      // Cover-Bild aus assets extrahieren und URL konvertieren
-      if (musicActivity.assets?.large_image) {
-        const rawImageUrl = musicActivity.assets.large_image;
-        cover = parseAlbumArtUrl(rawImageUrl);
-      }
-    }
-
-    // HTML für Musik-Anzeige generieren (Bild links, Text rechts)
-    let html = "";
-    
-    if (cover) {
-      html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
-    }
-    
-    if (title || artist || album || duration) {
-      html += `<div class="track-info">`;
-      if (title) html += `<p class="track-name">${title}</p>`;
-      if (artist) html += `<p class="track-artist">${artist}</p>`;
-      if (album) html += `<p class="track-album">${album}</p>`;
-      if (duration) html += `<p class="track-duration">${duration}</p>`;
-      html += `</div>`;
-    }
-
-    if (html) {
-      spotifyInfo.innerHTML = html;
-      spotifyInfo.className = "spotify-track-container";
-    } else {
-      spotifyInfo.innerHTML = "Listening to music";
-      spotifyInfo.className = "";
-    }
+    musicActivityData = musicActivity;
+    updateMusicDisplay(musicActivity, presence);
   } else {
     spotifyInfo.innerHTML = "Not listening to music right now";
     spotifyInfo.className = "";
+    musicActivityData = null;
   }
 };
+
+function updateMusicDisplay(musicActivity, presence) {
+  let cover = null;
+  let title = null;
+  let artist = null;
+  let album = null;
+  let duration = null;
+
+  // Spotify (spezielle Behandlung über listening_to_spotify)
+  if (presence.listening_to_spotify && presence.spotify) {
+    cover = presence.spotify.album_art_url;
+    title = presence.spotify.song;
+    artist = presence.spotify.artist;
+    album = presence.spotify.album;
+    duration = formatDuration((presence.spotify.end_timestamp || 0) - (presence.spotify.start_timestamp || 0));
+  } 
+  // Apple Music und andere Musik-Player
+  else {
+    // Titel und Artist aus details/state extrahieren
+    title = musicActivity.details || null;
+    artist = musicActivity.state || null;
+    
+    // Album aus assets.large_text extrahieren
+    if (musicActivity.assets?.large_text) {
+      album = musicActivity.assets.large_text;
+    }
+    
+    // Duration mit Live-Update aus timestamps
+    if (musicActivity.timestamps?.start && musicActivity.timestamps?.end) {
+      duration = getCurrentDuration(musicActivity.timestamps.start, musicActivity.timestamps.end);
+    } else if (musicActivity.timestamps?.end) {
+      const totalMs = musicActivity.timestamps.end - (musicActivity.timestamps.start || Date.now());
+      duration = formatDuration(totalMs);
+    }
+
+    // Cover-Bild aus assets extrahieren und URL konvertieren
+    if (musicActivity.assets?.large_image) {
+      const rawImageUrl = musicActivity.assets.large_image;
+      cover = parseAlbumArtUrl(rawImageUrl);
+    }
+  }
+
+  // HTML für Musik-Anzeige generieren (Bild links, Text rechts)
+  let html = "";
+  
+  if (cover) {
+    html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
+  }
+  
+  if (title || artist || album || duration) {
+    html += `<div class="track-info">`;
+    if (title) html += `<p class="track-name">${title}</p>`;
+    if (artist) html += `<p class="track-artist">${artist}</p>`;
+    if (album) html += `<p class="track-album">${album}</p>`;
+    if (duration) html += `<p class="track-duration">${duration}</p>`;
+    html += `</div>`;
+  }
+
+  if (html) {
+    spotifyInfo.innerHTML = html;
+    spotifyInfo.className = "spotify-track-container";
+  } else {
+    spotifyInfo.innerHTML = "Listening to music";
+    spotifyInfo.className = "";
+  }
+}
 
 ws.onerror = (error) => {
   console.error("WebSocket Error:", error);

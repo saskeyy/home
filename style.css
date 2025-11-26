@@ -74,7 +74,7 @@ body::before {
 .user-info {
   flex: 1;
   margin-left: 0.8rem;
-  margin-top: -0.5rem;
+  margin-top: 0.5rem;
 }
 
 .username-row {
@@ -134,7 +134,7 @@ body::before {
 }
 
 #activity {
-  margin: 0.25rem 0 0 0;
+  margin: 0.5rem 0 0 0;
   font-size: 0.9rem;
   color: #bbb;
 }

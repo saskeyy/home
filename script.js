@@ -18,6 +18,7 @@ const statusColors = {
 function showStatusIcon(status) {
   const color = statusColors[status] || statusColors.offline;
   statusEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${color}">ircle cx="12" cy="12" r="10"/></svg>`;
+  statusEl.style.backgroundColor = color;
 }
 
 copyBtn.textContent = "Copy username";
@@ -131,9 +132,10 @@ ws.onmessage = (event) => {
   usernameEl.textContent = user.username;
   avatarEl.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
   
-  // Status anzeigen
-  console.log("Discord Status:", presence.discord_status);
-  showStatusIcon(presence.discord_status || "offline");
+  // Status anzeigen - HIER IST DER FIX
+  const status = presence.discord_status || "offline";
+  console.log("Discord Status:", status);
+  showStatusIcon(status);
 
   const firstActivity = (presence.activities || []).find(a => a.name && a.name !== "Custom Status");
   activityEl.textContent = firstActivity ? `Activity: ${firstActivity.name}` : "No activity";

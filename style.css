@@ -99,6 +99,7 @@ body::before {
   justify-content: center;
   flex-shrink: 0;
   margin-left: 0.25rem;
+  margin-top: 2px;
   background-color: #747f8d;
   border: 1.5px solid rgba(44, 47, 51, 0.75);
 }
@@ -136,6 +137,12 @@ body::before {
   margin: 0.25rem 0 0 0;
   font-size: 0.9rem;
   color: #bbb;
+}
+
+.username-row p {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  color: #999;
 }
 
 .spotify {

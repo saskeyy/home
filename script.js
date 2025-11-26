@@ -17,7 +17,7 @@ const statusColors = {
 
 function showStatusIcon(status) {
   const color = statusColors[status] || statusColors.offline;
-  statusEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${color}"><circle cx="12" cy="12" r="10"/></svg>`;
+  statusEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${color}">ircle cx="12" cy="12" r="10"/></svg>`;
 }
 
 copyBtn.textContent = "📋";
@@ -65,6 +65,14 @@ function parseAlbumArtUrl(rawImageUrl) {
   return null;
 }
 
+function formatDuration(ms) {
+  if (!ms) return "";
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
 const ws = new WebSocket("wss://api.lanyard.rest/socket");
 
 ws.onopen = () => {
@@ -109,18 +117,33 @@ ws.onmessage = (event) => {
     let cover = null;
     let title = null;
     let artist = null;
+    let album = null;
+    let duration = null;
 
     // Spotify (spezielle Behandlung über listening_to_spotify)
     if (presence.listening_to_spotify && presence.spotify) {
       cover = presence.spotify.album_art_url;
       title = presence.spotify.song;
       artist = presence.spotify.artist;
+      album = presence.spotify.album;
+      duration = presence.spotify.song_id ? null : null; // Spotify nutzt song_id, nicht duration
     } 
     // Apple Music und andere Musik-Player
     else {
       // Titel und Artist aus details/state extrahieren
       title = musicActivity.details || null;
       artist = musicActivity.state || null;
+      
+      // Album aus party.id oder assets extrahieren
+      if (musicActivity.party?.id) {
+        album = musicActivity.party.id;
+      }
+      
+      // Duration aus timestamps extrahieren
+      if (musicActivity.timestamps?.end) {
+        const durationMs = musicActivity.timestamps.end - (musicActivity.timestamps.start || 0);
+        duration = formatDuration(durationMs);
+      }
 
       // Cover-Bild aus assets extrahieren und URL konvertieren
       if (musicActivity.assets?.large_image) {
@@ -136,10 +159,12 @@ ws.onmessage = (event) => {
       html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
     }
     
-    if (title || artist) {
+    if (title || artist || album || duration) {
       html += `<div class="track-info">`;
       if (title) html += `<p class="track-name">${title}</p>`;
       if (artist) html += `<p class="track-artist">${artist}</p>`;
+      if (album) html += `<p class="track-album">${album}</p>`;
+      if (duration) html += `<p class="track-duration">${duration}</p>`;
       html += `</div>`;
     }
 

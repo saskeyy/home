@@ -71,6 +71,8 @@ body::before {
 
 .user-info {
   flex: 1;
+  margin-right: 0.5rem;
+  margin-top: -0.3rem;
 }
 
 .username-row {

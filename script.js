@@ -7,6 +7,7 @@ const activityEl = document.getElementById("activity");
 const spotifyContainer = document.getElementById("spotifyContainer");
 const spotifyInfo = document.getElementById("spotifyInfo");
 const copyBtn = document.getElementById("copyBtn");
+const faviconEl = document.getElementById("favicon");
 
 const statusColors = {
   online: "#43b581",
@@ -130,9 +131,13 @@ ws.onmessage = (event) => {
 
   const user = presence.discord_user;
   usernameEl.textContent = user.username;
-  avatarEl.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+  const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+  avatarEl.src = avatarUrl;
   
-  // Status anzeigen - HIER IST DER FIX
+  // Favicon aktualisieren
+  faviconEl.href = avatarUrl;
+  
+  // Status anzeigen
   const status = presence.discord_status || "offline";
   console.log("Discord Status:", status);
   showStatusIcon(status);

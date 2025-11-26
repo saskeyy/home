@@ -82,7 +82,6 @@ body::before {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: 100%;
 }
 
 #username {
@@ -92,10 +91,7 @@ body::before {
 }
 
 #status-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  display: none;
 }
 
 #status-icon svg {
@@ -104,18 +100,26 @@ body::before {
 }
 
 #copyBtn {
+  position: absolute;
+  left: -10px;
+  top: 0;
+  width: 30%;
+  height: 100%;
   background: transparent;
   border: none;
   cursor: pointer;
+  opacity: 0;
+  z-index: 10;
+  pointer-events: auto;
   padding: 0;
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #bbb;
   transition: color 0.2s;
-  flex-shrink: 0;
 }
 
 #copyBtn:hover {
+  opacity: 1;
   color: #fff;
   background: transparent;
 }

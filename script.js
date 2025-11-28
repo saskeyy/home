@@ -11,38 +11,23 @@ const faviconEl = document.getElementById("favicon");
 const copyNotification = document.getElementById("copyNotification");
 const leftArrow = document.getElementById("leftArrow");
 const rightArrow = document.getElementById("rightArrow");
-const backgroundSlides = document.querySelectorAll(".background-slide");
+
+const backgrounds = [
+  "https://wallpapercave.com/wp/wp12265613.jpg",
+  "https://wallpapercave.com/wp/wp12265663.png",
+  "https://wallpapercave.com/wp/wp12265576.png"
+];
 
 let currentBackgroundIndex = 0;
 
-function updateBackgroundSlides(direction) {
-  backgroundSlides.forEach((slide, index) => {
-    slide.classList.remove("prev", "next");
-    
-    if (direction === "right") {
-      if (index === currentBackgroundIndex) {
-        slide.classList.add("next");
-      } else if (index === (currentBackgroundIndex - 1 + backgroundSlides.length) % backgroundSlides.length) {
-        slide.classList.remove("next");
-      }
-    } else if (direction === "left") {
-      if (index === currentBackgroundIndex) {
-        slide.classList.add("prev");
-      } else if (index === (currentBackgroundIndex + 1) % backgroundSlides.length) {
-        slide.classList.remove("prev");
-      }
-    }
-  });
-}
-
 leftArrow.onclick = () => {
-  updateBackgroundSlides("left");
-  currentBackgroundIndex = (currentBackgroundIndex - 1 + backgroundSlides.length) % backgroundSlides.length;
+  currentBackgroundIndex = (currentBackgroundIndex - 1 + backgrounds.length) % backgrounds.length;
+  document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
 };
 
 rightArrow.onclick = () => {
-  updateBackgroundSlides("right");
-  currentBackgroundIndex = (currentBackgroundIndex + 1) % backgroundSlides.length;
+  currentBackgroundIndex = (currentBackgroundIndex + 1) % backgrounds.length;
+  document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
 };
 
 const statusColors = {

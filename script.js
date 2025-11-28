@@ -21,18 +21,6 @@ const backgrounds = [
 let currentBackgroundIndex = 0;
 let isAnimating = false;
 
-document.addEventListener("mousemove", (e) => {
-  const bodyWidth = document.body.scrollWidth;
-  const bodyHeight = document.body.scrollHeight;
-  const x = (e.clientX / window.innerWidth) - 0.5;
-  const y = (e.clientY / window.innerHeight) - 0.5;
-  
-  const moveX = x * 40;
-  const moveY = y * 40;
-  
-  document.body.style.backgroundPosition = `calc(center + ${moveX}px) calc(center + ${moveY}px)`;
-});
-
 leftArrow.onclick = () => {
   if (isAnimating) return;
   isAnimating = true;

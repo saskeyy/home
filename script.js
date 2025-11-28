@@ -14,12 +14,22 @@ const rightArrow = document.getElementById("rightArrow");
 
 const backgrounds = [
   "https://wallpapercave.com/wp/wp12265613.jpg",
-  "https://wallpapercave.com/wp/wp12265678.jpg",
+  "https://wallpapercave.com/wp/wp12265663.png",
   "https://wallpapercave.com/wp/wp12265576.png"
 ];
 
 let currentBackgroundIndex = 0;
 let isAnimating = false;
+
+document.addEventListener("mousemove", (e) => {
+  const x = (e.clientX / window.innerWidth) - 0.5;
+  const y = (e.clientY / window.innerHeight) - 0.5;
+  
+  const moveX = x * 20;
+  const moveY = y * 20;
+  
+  document.body.style.backgroundPosition = `calc(center + ${moveX}px) calc(center + ${moveY}px)`;
+});
 
 leftArrow.onclick = () => {
   if (isAnimating) return;

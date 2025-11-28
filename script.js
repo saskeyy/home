@@ -14,33 +14,40 @@ const rightArrow = document.getElementById("rightArrow");
 
 const backgrounds = [
   "https://wallpapercave.com/wp/wp12265613.jpg",
-  "https://wallpapercave.com/wp/wp12265678.jpg",
-  "https://wallpapercave.com/wp/wp12265576.png",
-  "https://wallpapercave.com/wp/wp12155382.jpg"
+  "https://wallpapercave.com/wp/wp12265663.png",
+  "https://wallpapercave.com/wp/wp12265576.png"
 ];
 
 let currentBackgroundIndex = 0;
 let isAnimating = false;
 
-leftArrow.onclick = () => {
+function setBackground(direction) {
   if (isAnimating) return;
   isAnimating = true;
-  currentBackgroundIndex = (currentBackgroundIndex - 1 + backgrounds.length) % backgrounds.length;
-  document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
-  setTimeout(() => {
-    isAnimating = false;
-  }, 570);
-};
 
-rightArrow.onclick = () => {
-  if (isAnimating) return;
-  isAnimating = true;
-  currentBackgroundIndex = (currentBackgroundIndex + 1) % backgrounds.length;
+  if (direction === "left") {
+    currentBackgroundIndex = (currentBackgroundIndex - 1 + backgrounds.length) % backgrounds.length;
+  } else if (direction === "right") {
+    currentBackgroundIndex = (currentBackgroundIndex + 1) % backgrounds.length;
+  }
+
   document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
+
   setTimeout(() => {
     isAnimating = false;
   }, 570);
-};
+}
+
+leftArrow.onclick = () => setBackground("left");
+rightArrow.onclick = () => setBackground("right");
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") {
+    setBackground("left");
+  } else if (e.key === "ArrowRight") {
+    setBackground("right");
+  }
+});
 
 const statusColors = {
   online: "#43b581",

@@ -9,6 +9,26 @@ const spotifyInfo = document.getElementById("spotifyInfo");
 const copyBtn = document.getElementById("copyBtn");
 const faviconEl = document.getElementById("favicon");
 const copyNotification = document.getElementById("copyNotification");
+const leftArrow = document.getElementById("leftArrow");
+const rightArrow = document.getElementById("rightArrow");
+
+const backgrounds = [
+  "https://wallpapercave.com/wp/wp12265613.jpg",
+  "https://wallpapercave.com/wp/wp12265663.png",
+  "https://wallpapercave.com/wp/wp12265576.png"
+];
+
+let currentBackgroundIndex = 0;
+
+leftArrow.onclick = () => {
+  currentBackgroundIndex = (currentBackgroundIndex - 1 + backgrounds.length) % backgrounds.length;
+  document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
+};
+
+rightArrow.onclick = () => {
+  currentBackgroundIndex = (currentBackgroundIndex + 1) % backgrounds.length;
+  document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
+};
 
 const statusColors = {
   online: "#43b581",

@@ -8,6 +8,7 @@ const spotifyContainer = document.getElementById("spotifyContainer");
 const spotifyInfo = document.getElementById("spotifyInfo");
 const copyBtn = document.getElementById("copyBtn");
 const faviconEl = document.getElementById("favicon");
+const copyNotification = document.getElementById("copyNotification");
 
 const statusColors = {
   online: "#43b581",
@@ -26,9 +27,11 @@ copyBtn.title = "Copy username";
 copyBtn.onclick = () => {
   if (usernameEl.textContent && usernameEl.textContent !== "Loading..." && usernameEl.textContent !== "N/A") {
     navigator.clipboard.writeText(usernameEl.textContent).then(() => {
-      const originalText = copyBtn.textContent;
-      copyBtn.textContent = "✅ Copied!";
-      setTimeout(() => (copyBtn.textContent = originalText), 1500);
+      copyNotification.textContent = "✅ Copied!";
+      copyNotification.classList.add("show");
+      setTimeout(() => {
+        copyNotification.classList.remove("show");
+      }, 1500);
     });
   }
 };

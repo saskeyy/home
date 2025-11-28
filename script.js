@@ -14,7 +14,7 @@ const rightArrow = document.getElementById("rightArrow");
 
 const backgrounds = [
   "https://wallpapercave.com/wp/wp12265613.jpg",
-  "https://wallpapercave.com/wp/wp12265663.png",
+  "https://wallpapercave.com/wp/wp12265678.jpg",
   "https://wallpapercave.com/wp/wp12265576.png"
 ];
 

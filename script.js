@@ -19,15 +19,26 @@ const backgrounds = [
 ];
 
 let currentBackgroundIndex = 0;
+let isAnimating = false;
 
 leftArrow.onclick = () => {
+  if (isAnimating) return;
+  isAnimating = true;
   currentBackgroundIndex = (currentBackgroundIndex - 1 + backgrounds.length) % backgrounds.length;
   document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
+  setTimeout(() => {
+    isAnimating = false;
+  }, 800);
 };
 
 rightArrow.onclick = () => {
+  if (isAnimating) return;
+  isAnimating = true;
   currentBackgroundIndex = (currentBackgroundIndex + 1) % backgrounds.length;
   document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
+  setTimeout(() => {
+    isAnimating = false;
+  }, 800);
 };
 
 const statusColors = {

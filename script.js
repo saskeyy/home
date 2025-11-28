@@ -25,8 +25,8 @@ document.addEventListener("mousemove", (e) => {
   const x = (e.clientX / window.innerWidth) - 0.5;
   const y = (e.clientY / window.innerHeight) - 0.5;
   
-  const moveX = x * 20;
-  const moveY = y * 20;
+  const moveX = x * 30;
+  const moveY = y * 30;
   
   document.body.style.backgroundPosition = `calc(center + ${moveX}px) calc(center + ${moveY}px)`;
 });

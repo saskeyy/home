@@ -28,7 +28,7 @@ leftArrow.onclick = () => {
   document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
   setTimeout(() => {
     isAnimating = false;
-  }, 800);
+  }, 570);
 };
 
 rightArrow.onclick = () => {
@@ -38,7 +38,7 @@ rightArrow.onclick = () => {
   document.body.style.backgroundImage = `url("${backgrounds[currentBackgroundIndex]}")`;
   setTimeout(() => {
     isAnimating = false;
-  }, 800);
+  }, 570);
 };
 
 const statusColors = {

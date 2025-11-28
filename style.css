@@ -7,7 +7,7 @@ body {
   background-image: url("https://wallpapercave.com/wp/wp12265613.jpg");
   background-repeat: no-repeat;
   background-position: center center;
-  background-attachment: fixed;
+  background-attachment: scroll;
   background-size: 110%;
   color: #eee;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

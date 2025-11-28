@@ -108,7 +108,7 @@ body::before {
   padding: 1rem 1.5rem;
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 2rem;
   width: 320px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.5);
   border: 1.5px solid rgba(160, 160, 180, 0.20);

@@ -16,8 +16,7 @@ const backgrounds = [
   "https://wallpapercave.com/wp/wp12265613.jpg",
   "https://wallpapercave.com/wp/wp12265678.jpg",
   "https://wallpapercave.com/wp/wp12265576.png",
-  "https://wallpapercave.com/wp/wp12155382.jpg",
-  "https://wallpapercave.com/wp/wp12265644.jpg"
+  "https://wallpapercave.com/wp/wp12155382.jpg"
 ];
 
 let currentBackgroundIndex = 0;

@@ -22,11 +22,13 @@ let currentBackgroundIndex = 0;
 let isAnimating = false;
 
 document.addEventListener("mousemove", (e) => {
+  const bodyWidth = document.body.scrollWidth;
+  const bodyHeight = document.body.scrollHeight;
   const x = (e.clientX / window.innerWidth) - 0.5;
   const y = (e.clientY / window.innerHeight) - 0.5;
   
-  const moveX = x * 30;
-  const moveY = y * 30;
+  const moveX = x * 40;
+  const moveY = y * 40;
   
   document.body.style.backgroundPosition = `calc(center + ${moveX}px) calc(center + ${moveY}px)`;
 });
@@ -125,7 +127,14 @@ function getCurrentDuration(startTime, endTime) {
   const elapsedS = elapsedSec % 60;
   const totalMin = Math.floor(totalSec / 60);
   const totalS = totalSec % 60;
-  return `${elapsedMin}:${elapsedS.toString().padStart(2, '0')} / ${totalMin}:${totalS.toString().padStart(2, '0')}`;
+  
+  const percentage = (elapsed / total) * 100;
+  
+  return {
+    current: `${elapsedMin}:${elapsedS.toString().padStart(2, '0')}`,
+    total: `${totalMin}:${totalS.toString().padStart(2, '0')}`,
+    progress: Math.min(100, Math.max(0, percentage))
+  };
 }
 
 let musicActivityData = null;
@@ -200,14 +209,16 @@ function updateMusicDisplay(musicActivity, presence) {
   let title = null;
   let artist = null;
   let album = null;
-  let duration = null;
+  let durationInfo = null;
 
   if (presence.listening_to_spotify && presence.spotify) {
     cover = presence.spotify.album_art_url;
     title = presence.spotify.song;
     artist = presence.spotify.artist;
     album = presence.spotify.album;
-    duration = formatDuration((presence.spotify.end_timestamp || 0) - (presence.spotify.start_timestamp || 0));
+    const start = presence.spotify.start_timestamp || 0;
+    const end = presence.spotify.end_timestamp || 0;
+    durationInfo = getCurrentDuration(start, end);
   } 
   else {
     title = musicActivity.details || null;
@@ -218,10 +229,14 @@ function updateMusicDisplay(musicActivity, presence) {
     }
     
     if (musicActivity.timestamps?.start && musicActivity.timestamps?.end) {
-      duration = getCurrentDuration(musicActivity.timestamps.start, musicActivity.timestamps.end);
+      durationInfo = getCurrentDuration(musicActivity.timestamps.start, musicActivity.timestamps.end);
     } else if (musicActivity.timestamps?.end) {
       const totalMs = musicActivity.timestamps.end - (musicActivity.timestamps.start || Date.now());
-      duration = formatDuration(totalMs);
+      durationInfo = {
+        current: "0:00",
+        total: formatDuration(totalMs),
+        progress: 0
+      };
     }
 
     if (musicActivity.assets?.large_image) {
@@ -236,12 +251,18 @@ function updateMusicDisplay(musicActivity, presence) {
     html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
   }
   
-  if (title || artist || album || duration) {
+  if (title || artist || album || durationInfo) {
     html += `<div class="track-info">`;
     if (title) html += `<p class="track-name">${title}</p>`;
     if (artist) html += `<p class="track-artist">${artist}</p>`;
     if (album) html += `<p class="track-album">${album}</p>`;
-    if (duration) html += `<p class="track-duration">${duration}</p>`;
+    if (durationInfo) {
+      html += `<div class="track-duration-bar">`;
+      html += `<span class="track-time">${durationInfo.current}</span>`;
+      html += `<div class="progress-bar"><div class="progress-fill" style="width: ${durationInfo.progress}%"></div></div>`;
+      html += `<span class="track-time-right">${durationInfo.total}</span>`;
+      html += `</div>`;
+    }
     html += `</div>`;
   }
 

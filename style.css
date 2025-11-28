@@ -259,7 +259,7 @@ body::before {
   overflow: hidden;
 }
 
-.track-name, .track-artist, .track-album, .track-duration {
+.track-name, .track-artist, .track-album {
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -287,11 +287,42 @@ body::before {
   line-height: 1.2;
 }
 
-.track-duration {
+.track-duration-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.track-time {
   font-size: 0.75rem;
-  color: #777;
-  margin-top: 0.1rem;
-  line-height: 1.2;
+  color: #aaa;
+  font-weight: 500;
+  min-width: 25px;
+}
+
+.track-time-right {
+  font-size: 0.75rem;
+  color: #aaa;
+  font-weight: 500;
+  min-width: 25px;
+  text-align: right;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(100, 100, 100, 0.6);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #bbb;
+  border-radius: 2px;
+  transition: width 0.1s linear;
 }
 
 .spotify-track {
@@ -410,8 +441,7 @@ body::before {
 
   .track-name,
   .track-artist,
-  .track-album,
-  .track-duration {
+  .track-album {
     text-align: center;
     white-space: normal;
   }

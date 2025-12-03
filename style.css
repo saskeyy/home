@@ -404,6 +404,11 @@ body::before {
     gap: 0.5rem;
   }
 
+  .card:hover {
+    transform: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  }
+
   .cat-container,
   .spotify {
     width: 100%;
@@ -412,6 +417,12 @@ body::before {
     flex-direction: column;
     align-items: center;
     text-align: center;
+  }
+
+  .cat-container:hover,
+  .spotify:hover {
+    transform: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
   }
 
   #avatar {
@@ -486,15 +497,6 @@ body::before {
   }
 
   .arrow-btn {
-    width: 60px;
-    height: 60px;
-  }
-
-  .left-arrow {
-    left: 10px;
-  }
-
-  .right-arrow {
-    right: 10px;
+    display: none;
   }
 }

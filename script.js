@@ -279,7 +279,4 @@ ws.onerror = (error) => {
 
 ws.onclose = () => {
   console.log("WebSocket connection closed");
-  setTimeout(() => {
-    window.location.reload();
-  }, 5000);
 };

@@ -390,10 +390,13 @@ body::before {
 
   .left-container {
     align-items: center;
+    width: 100%;
+    max-width: 320px;
   }
 
   .card,
-  .cat-container {
+  .cat-container,
+  .spotify {
     width: 100%;
     max-width: 320px;
     display: flex;
@@ -402,10 +405,10 @@ body::before {
     text-align: center;
   }
 
-  .spotify {
+  .spotify h3 {
     width: 100%;
-    max-width: 320px;
-    height: auto;
+    text-align: center;
+    margin: 0 0 0.5rem 0;
   }
 
   .username-row {

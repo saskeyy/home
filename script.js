@@ -22,6 +22,9 @@ const backgrounds = [
 let currentBackgroundIndex = 0;
 let isAnimating = false;
 
+// NEU: Cache für das aktuelle Cover
+let lastProcessedCover = null;
+
 function setBackground(direction) {
   if (isAnimating) return;
   isAnimating = true;
@@ -134,7 +137,7 @@ function getCurrentDuration(startTime, endTime) {
   };
 }
 
-// NEU: Bessere Canvas-basierte Farbextraktion ohne externe Library
+// NEU: Canvas-basierte Farbextraktion
 function extractDominantColors(imageUrl, callback) {
   const img = new Image();
   img.crossOrigin = "Anonymous";
@@ -142,21 +145,20 @@ function extractDominantColors(imageUrl, callback) {
   img.onload = () => {
     try {
       const canvas = document.createElement('canvas');
-      canvas.width = 100;
-      canvas.height = 100;
+      canvas.width = 80;
+      canvas.height = 80;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, 100, 100);
+      ctx.drawImage(img, 0, 0, 80, 80);
       
-      const imageData = ctx.getImageData(0, 0, 100, 100);
+      const imageData = ctx.getImageData(0, 0, 80, 80);
       const data = imageData.data;
       
       const colorMap = {};
       
-      // Farben zählen
       for (let i = 0; i < data.length; i += 4) {
-        const r = Math.round(data[i] / 10) * 10;
-        const g = Math.round(data[i + 1] / 10) * 10;
-        const b = Math.round(data[i + 2] / 10) * 10;
+        const r = Math.round(data[i] / 15) * 15;
+        const g = Math.round(data[i + 1] / 15) * 15;
+        const b = Math.round(data[i + 2] / 15) * 15;
         const a = data[i + 3];
         
         if (a < 128) continue;
@@ -165,7 +167,6 @@ function extractDominantColors(imageUrl, callback) {
         colorMap[colorKey] = (colorMap[colorKey] || 0) + 1;
       }
       
-      // Top 2 Farben finden
       const sortedColors = Object.entries(colorMap)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 2)
@@ -179,23 +180,20 @@ function extractDominantColors(imageUrl, callback) {
         callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
       }
     } catch (e) {
-      console.error("Color extraction error:", e);
       callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
     }
   };
   
   img.onerror = () => {
-    console.error("Image load error:", imageUrl);
     callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
   };
   
   img.src = imageUrl;
 }
 
-// NEU: Gradient auf Parent-Container anwenden
+// NEU: Gradient anwenden
 function applyMusicGradient(color1, color2) {
-  spotifyContainer.style.background = `linear-gradient(135deg, ${color1}80, ${color2}80)`;
-  spotifyContainer.style.borderRadius = '10px';
+  spotifyContainer.style.background = `linear-gradient(135deg, ${color1}cc, ${color2}cc)`;
 }
 
 // NEU: Gradient zurücksetzen
@@ -239,6 +237,7 @@ ws.onmessage = (event) => {
     activityEl.textContent = "No activity";
     spotifyInfo.innerHTML = "Not listening to music right now";
     resetMusicGradient();
+    lastProcessedCover = null;
     musicActivityData = null;
     return;
   }
@@ -268,6 +267,7 @@ ws.onmessage = (event) => {
     spotifyInfo.innerHTML = "Not listening to music right now";
     spotifyInfo.className = "";
     resetMusicGradient();
+    lastProcessedCover = null;
     musicActivityData = null;
   }
 };
@@ -317,12 +317,17 @@ function updateMusicDisplay(musicActivity, presence) {
   
   if (cover) {
     html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
-    // NEU: Farben extrahieren und auf Parent anwenden
-    extractDominantColors(cover, (color1, color2) => {
-      applyMusicGradient(color1, color2);
-    });
+    
+    // NEU: NUR wenn sich das Cover geändert hat, neu berechnen
+    if (cover !== lastProcessedCover) {
+      lastProcessedCover = cover;
+      extractDominantColors(cover, (color1, color2) => {
+        applyMusicGradient(color1, color2);
+      });
+    }
   } else {
     resetMusicGradient();
+    lastProcessedCover = null;
   }
   
   if (title || artist || album || durationInfo) {

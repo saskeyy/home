@@ -135,40 +135,57 @@ function getCurrentDuration(startTime, endTime) {
   };
 }
 
-// NEU: Colormind API nutzen um dominante Farben zu extrahieren
+// NEU: Farbextraktion mit Colormind API
 function extractDominantColors(imageUrl, callback) {
-  const payload = {
-    model: "default",
-    input: [[imageUrl, -1, -1, -1, -1]]
+  // Fallback Funktion mit einfachen Farben basierend auf Spotify-Schnitt
+  const defaultCallback = () => {
+    callback('rgb(30, 215, 96)', 'rgb(25, 25, 25)');
   };
 
-  fetch("https://colormind.io/api/", {
-    method: "POST",
-    body: JSON.stringify(payload)
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.result && data.result.length >= 2) {
-      const color1 = `rgb(${data.result[0][0]}, ${data.result[0][1]}, ${data.result[0][2]})`;
-      const color2 = `rgb(${data.result[1][0]}, ${data.result[1][1]}, ${data.result[1][2]})`;
-      callback(color1, color2);
-    } else {
-      callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
-    }
-  })
-  .catch(error => {
-    console.error("Color extraction error:", error);
-    callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
-  });
+  try {
+    const payload = {
+      model: "default",
+      input: [[imageUrl, -1, -1, -1, -1]]
+    };
+
+    fetch("https://colormind.io/api/", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.result && data.result.length >= 2) {
+        const color1 = `rgb(${Math.round(data.result[0][0])}, ${Math.round(data.result[0][1])}, ${Math.round(data.result[0][2])})`;
+        const color2 = `rgb(${Math.round(data.result[1][0])}, ${Math.round(data.result[1][1])}, ${Math.round(data.result[1][2])})`;
+        console.log("Extracted colors:", color1, color2);
+        callback(color1, color2);
+      } else {
+        console.log("No colors from API, using default");
+        defaultCallback();
+      }
+    })
+    .catch(error => {
+      console.error("Colormind API error:", error);
+      defaultCallback();
+    });
+  } catch (e) {
+    console.error("Color extraction error:", e);
+    defaultCallback();
+  }
 }
 
-// Diagonal Gradient von oben-rechts nach unten-links
+// NEU: Gradient DIREKT auf spotifyContainer
 function applyMusicGradient(color1, color2) {
-  spotifyContainer.style.background = `linear-gradient(to bottom left, ${color1}dd, ${color2}dd)`;
+  console.log("Applying gradient:", color1, "->", color2);
+  spotifyContainer.style.backgroundImage = `linear-gradient(135deg, ${color1}, ${color2})`;
+  spotifyContainer.style.backgroundSize = "cover";
+  spotifyContainer.style.backgroundPosition = "center";
 }
 
 function resetMusicGradient() {
-  spotifyContainer.style.background = 'rgba(44, 47, 51, 0.75)';
+  console.log("Resetting gradient");
+  spotifyContainer.style.backgroundImage = "none";
+  spotifyContainer.style.background = "rgba(44, 47, 51, 0.75)";
 }
 
 let musicActivityData = null;
@@ -177,6 +194,7 @@ let presenceData = null;
 const ws = new WebSocket("wss://api.lanyard.rest/socket");
 
 ws.onopen = () => {
+  console.log("WebSocket connected");
   ws.send(JSON.stringify({ op: 2, d: { subscribe_to_ids: [DISCORD_ID] } }));
   setInterval(() => {
     if (ws.readyState === 1) ws.send(JSON.stringify({ op: 3 }));
@@ -288,8 +306,10 @@ function updateMusicDisplay(musicActivity, presence) {
   if (cover) {
     html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
     
+    // NEU: Nur bei neuem Cover Farben extrahieren
     if (cover !== lastProcessedCover) {
       lastProcessedCover = cover;
+      console.log("New cover detected, extracting colors:", cover);
       extractDominantColors(cover, (color1, color2) => {
         applyMusicGradient(color1, color2);
       });

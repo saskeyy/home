@@ -134,30 +134,65 @@ function getCurrentDuration(startTime, endTime) {
   };
 }
 
-// NEU: Vibrant.js laden für bessere Farbextraktion
-const script = document.createElement('script');
-script.src = 'https://jariz.github.io/vibrant.js/dist/Vibrant.js';
-document.head.appendChild(script);
-
-// NEU: Funktion zur Farbextraktion mit Vibrant.js
-function extractDominantColorsVibrant(imageUrl, callback) {
-  if (typeof Vibrant === 'undefined') {
-    // Fallback wenn Vibrant nicht geladen
+// NEU: Bessere Canvas-basierte Farbextraktion ohne externe Library
+function extractDominantColors(imageUrl, callback) {
+  const img = new Image();
+  img.crossOrigin = "Anonymous";
+  
+  img.onload = () => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 100;
+      canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, 100, 100);
+      
+      const imageData = ctx.getImageData(0, 0, 100, 100);
+      const data = imageData.data;
+      
+      const colorMap = {};
+      
+      // Farben zählen
+      for (let i = 0; i < data.length; i += 4) {
+        const r = Math.round(data[i] / 10) * 10;
+        const g = Math.round(data[i + 1] / 10) * 10;
+        const b = Math.round(data[i + 2] / 10) * 10;
+        const a = data[i + 3];
+        
+        if (a < 128) continue;
+        
+        const colorKey = `rgb(${r},${g},${b})`;
+        colorMap[colorKey] = (colorMap[colorKey] || 0) + 1;
+      }
+      
+      // Top 2 Farben finden
+      const sortedColors = Object.entries(colorMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(entry => entry[0]);
+      
+      if (sortedColors.length >= 2) {
+        callback(sortedColors[0], sortedColors[1]);
+      } else if (sortedColors.length === 1) {
+        callback(sortedColors[0], sortedColors[0]);
+      } else {
+        callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
+      }
+    } catch (e) {
+      console.error("Color extraction error:", e);
+      callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
+    }
+  };
+  
+  img.onerror = () => {
+    console.error("Image load error:", imageUrl);
     callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
-    return;
-  }
-
-  Vibrant.from(imageUrl).getSwatches().then((swatches) => {
-    const vibrant = swatches.Vibrant?.getHex() || '#2c2f33';
-    const darkMuted = swatches.DarkMuted?.getHex() || '#1a1d20';
-    
-    callback(vibrant, darkMuted);
-  }).catch(() => {
-    callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
-  });
+  };
+  
+  img.src = imageUrl;
 }
 
-// NEU: Gradient auf Parent-Container anwenden (nicht auf den Content)
+// NEU: Gradient auf Parent-Container anwenden
 function applyMusicGradient(color1, color2) {
   spotifyContainer.style.background = `linear-gradient(135deg, ${color1}80, ${color2}80)`;
   spotifyContainer.style.borderRadius = '10px';
@@ -282,8 +317,8 @@ function updateMusicDisplay(musicActivity, presence) {
   
   if (cover) {
     html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
-    // NEU: Farben extrahieren UND auf Parent-Container anwenden
-    extractDominantColorsVibrant(cover, (color1, color2) => {
+    // NEU: Farben extrahieren und auf Parent anwenden
+    extractDominantColors(cover, (color1, color2) => {
       applyMusicGradient(color1, color2);
     });
   } else {

@@ -22,7 +22,6 @@ const backgrounds = [
 let currentBackgroundIndex = 0;
 let isAnimating = false;
 
-// NEU: Cache für das aktuelle Cover
 let lastProcessedCover = null;
 
 function setBackground(direction) {
@@ -137,7 +136,7 @@ function getCurrentDuration(startTime, endTime) {
   };
 }
 
-// NEU: Canvas-basierte Farbextraktion
+// NEU: Bessere Farbextraktion mit K-Means Clustering
 function extractDominantColors(imageUrl, callback) {
   const img = new Image();
   img.crossOrigin = "Anonymous";
@@ -145,41 +144,89 @@ function extractDominantColors(imageUrl, callback) {
   img.onload = () => {
     try {
       const canvas = document.createElement('canvas');
-      canvas.width = 80;
-      canvas.height = 80;
+      canvas.width = 150;
+      canvas.height = 150;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, 80, 80);
+      ctx.drawImage(img, 0, 0, 150, 150);
       
-      const imageData = ctx.getImageData(0, 0, 80, 80);
+      const imageData = ctx.getImageData(0, 0, 150, 150);
       const data = imageData.data;
       
-      const colorMap = {};
+      const pixels = [];
       
-      for (let i = 0; i < data.length; i += 4) {
-        const r = Math.round(data[i] / 15) * 15;
-        const g = Math.round(data[i + 1] / 15) * 15;
-        const b = Math.round(data[i + 2] / 15) * 15;
+      // Alle Pixel sammeln (jeden 4ten, um schneller zu sein)
+      for (let i = 0; i < data.length; i += 16) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
         const a = data[i + 3];
         
-        if (a < 128) continue;
-        
-        const colorKey = `rgb(${r},${g},${b})`;
-        colorMap[colorKey] = (colorMap[colorKey] || 0) + 1;
+        // Nur opaque Pixel
+        if (a > 128) {
+          pixels.push([r, g, b]);
+        }
       }
       
-      const sortedColors = Object.entries(colorMap)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 2)
-        .map(entry => entry[0]);
-      
-      if (sortedColors.length >= 2) {
-        callback(sortedColors[0], sortedColors[1]);
-      } else if (sortedColors.length === 1) {
-        callback(sortedColors[0], sortedColors[0]);
-      } else {
+      if (pixels.length === 0) {
         callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
+        return;
       }
+      
+      // K-Means mit K=2
+      const k = 2;
+      let centers = [];
+      
+      // Zufällige Startpunkte
+      for (let i = 0; i < k; i++) {
+        centers.push(pixels[Math.floor(Math.random() * pixels.length)]);
+      }
+      
+      // K-Means Iterationen
+      for (let iter = 0; iter < 5; iter++) {
+        const clusters = [[], []];
+        
+        // Zuordnung
+        pixels.forEach(pixel => {
+          let minDist = Infinity;
+          let closestCluster = 0;
+          
+          centers.forEach((center, idx) => {
+            const dist = Math.pow(pixel[0] - center[0], 2) + 
+                        Math.pow(pixel[1] - center[1], 2) + 
+                        Math.pow(pixel[2] - center[2], 2);
+            if (dist < minDist) {
+              minDist = dist;
+              closestCluster = idx;
+            }
+          });
+          
+          clusters[closestCluster].push(pixel);
+        });
+        
+        // Zentren neu berechnen
+        for (let i = 0; i < k; i++) {
+          if (clusters[i].length > 0) {
+            const sum = [0, 0, 0];
+            clusters[i].forEach(pixel => {
+              sum[0] += pixel[0];
+              sum[1] += pixel[1];
+              sum[2] += pixel[2];
+            });
+            centers[i] = [
+              Math.round(sum[0] / clusters[i].length),
+              Math.round(sum[1] / clusters[i].length),
+              Math.round(sum[2] / clusters[i].length)
+            ];
+          }
+        }
+      }
+      
+      const color1 = `rgb(${centers[0][0]}, ${centers[0][1]}, ${centers[0][2]})`;
+      const color2 = `rgb(${centers[1][0]}, ${centers[1][1]}, ${centers[1][2]})`;
+      
+      callback(color1, color2);
     } catch (e) {
+      console.error("Color extraction error:", e);
       callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
     }
   };
@@ -191,12 +238,11 @@ function extractDominantColors(imageUrl, callback) {
   img.src = imageUrl;
 }
 
-// NEU: Gradient anwenden
+// NEU: Diagonal Gradient von oben-rechts nach unten-links
 function applyMusicGradient(color1, color2) {
-  spotifyContainer.style.background = `linear-gradient(135deg, ${color1}cc, ${color2}cc)`;
+  spotifyContainer.style.background = `linear-gradient(to bottom left, ${color1}dd, ${color2}dd)`;
 }
 
-// NEU: Gradient zurücksetzen
 function resetMusicGradient() {
   spotifyContainer.style.background = 'rgba(44, 47, 51, 0.75)';
 }
@@ -318,7 +364,6 @@ function updateMusicDisplay(musicActivity, presence) {
   if (cover) {
     html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
     
-    // NEU: NUR wenn sich das Cover geändert hat, neu berechnen
     if (cover !== lastProcessedCover) {
       lastProcessedCover = cover;
       extractDominantColors(cover, (color1, color2) => {

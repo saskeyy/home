@@ -21,7 +21,6 @@ const backgrounds = [
 
 let currentBackgroundIndex = 0;
 let isAnimating = false;
-
 let lastProcessedCover = null;
 
 function setBackground(direction) {
@@ -136,109 +135,34 @@ function getCurrentDuration(startTime, endTime) {
   };
 }
 
-// NEU: Bessere Farbextraktion mit K-Means Clustering
+// NEU: Colormind API nutzen um dominante Farben zu extrahieren
 function extractDominantColors(imageUrl, callback) {
-  const img = new Image();
-  img.crossOrigin = "Anonymous";
-  
-  img.onload = () => {
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 150;
-      canvas.height = 150;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, 150, 150);
-      
-      const imageData = ctx.getImageData(0, 0, 150, 150);
-      const data = imageData.data;
-      
-      const pixels = [];
-      
-      // Alle Pixel sammeln (jeden 4ten, um schneller zu sein)
-      for (let i = 0; i < data.length; i += 16) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        const a = data[i + 3];
-        
-        // Nur opaque Pixel
-        if (a > 128) {
-          pixels.push([r, g, b]);
-        }
-      }
-      
-      if (pixels.length === 0) {
-        callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
-        return;
-      }
-      
-      // K-Means mit K=2
-      const k = 2;
-      let centers = [];
-      
-      // Zufällige Startpunkte
-      for (let i = 0; i < k; i++) {
-        centers.push(pixels[Math.floor(Math.random() * pixels.length)]);
-      }
-      
-      // K-Means Iterationen
-      for (let iter = 0; iter < 5; iter++) {
-        const clusters = [[], []];
-        
-        // Zuordnung
-        pixels.forEach(pixel => {
-          let minDist = Infinity;
-          let closestCluster = 0;
-          
-          centers.forEach((center, idx) => {
-            const dist = Math.pow(pixel[0] - center[0], 2) + 
-                        Math.pow(pixel[1] - center[1], 2) + 
-                        Math.pow(pixel[2] - center[2], 2);
-            if (dist < minDist) {
-              minDist = dist;
-              closestCluster = idx;
-            }
-          });
-          
-          clusters[closestCluster].push(pixel);
-        });
-        
-        // Zentren neu berechnen
-        for (let i = 0; i < k; i++) {
-          if (clusters[i].length > 0) {
-            const sum = [0, 0, 0];
-            clusters[i].forEach(pixel => {
-              sum[0] += pixel[0];
-              sum[1] += pixel[1];
-              sum[2] += pixel[2];
-            });
-            centers[i] = [
-              Math.round(sum[0] / clusters[i].length),
-              Math.round(sum[1] / clusters[i].length),
-              Math.round(sum[2] / clusters[i].length)
-            ];
-          }
-        }
-      }
-      
-      const color1 = `rgb(${centers[0][0]}, ${centers[0][1]}, ${centers[0][2]})`;
-      const color2 = `rgb(${centers[1][0]}, ${centers[1][1]}, ${centers[1][2]})`;
-      
+  const payload = {
+    model: "default",
+    input: [[imageUrl, -1, -1, -1, -1]]
+  };
+
+  fetch("https://colormind.io/api/", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.result && data.result.length >= 2) {
+      const color1 = `rgb(${data.result[0][0]}, ${data.result[0][1]}, ${data.result[0][2]})`;
+      const color2 = `rgb(${data.result[1][0]}, ${data.result[1][1]}, ${data.result[1][2]})`;
       callback(color1, color2);
-    } catch (e) {
-      console.error("Color extraction error:", e);
+    } else {
       callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
     }
-  };
-  
-  img.onerror = () => {
+  })
+  .catch(error => {
+    console.error("Color extraction error:", error);
     callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
-  };
-  
-  img.src = imageUrl;
+  });
 }
 
-// NEU: Diagonal Gradient von oben-rechts nach unten-links
+// Diagonal Gradient von oben-rechts nach unten-links
 function applyMusicGradient(color1, color2) {
   spotifyContainer.style.background = `linear-gradient(to bottom left, ${color1}dd, ${color2}dd)`;
 }

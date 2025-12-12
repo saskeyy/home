@@ -134,68 +134,38 @@ function getCurrentDuration(startTime, endTime) {
   };
 }
 
-// NEU: Funktion zur Farbextraktion aus Bildern
-function extractDominantColors(imageUrl, callback) {
-  const img = new Image();
-  img.crossOrigin = "Anonymous";
-  
-  img.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 50;
-    canvas.height = 50;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, 50, 50);
-    
-    const imageData = ctx.getImageData(0, 0, 50, 50);
-    const data = imageData.data;
-    
-    const colorMap = {};
-    
-    // Farben zählen (jeweils 4 Pixel = eine RGBA Farbe)
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const a = data[i + 3];
-      
-      // Transparent Pixel ignorieren
-      if (a < 128) continue;
-      
-      // Farbe zu RGB string
-      const colorKey = `rgb(${r},${g},${b})`;
-      colorMap[colorKey] = (colorMap[colorKey] || 0) + 1;
-    }
-    
-    // Top 2 Farben finden
-    const sortedColors = Object.entries(colorMap)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 2)
-      .map(entry => entry[0]);
-    
-    if (sortedColors.length > 0) {
-      callback(sortedColors[0], sortedColors[1] || sortedColors[0]);
-    } else {
-      callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
-    }
-  };
-  
-  img.onerror = () => {
-    // Fallback Farben bei Fehler
+// NEU: Vibrant.js laden für bessere Farbextraktion
+const script = document.createElement('script');
+script.src = 'https://jariz.github.io/vibrant.js/dist/Vibrant.js';
+document.head.appendChild(script);
+
+// NEU: Funktion zur Farbextraktion mit Vibrant.js
+function extractDominantColorsVibrant(imageUrl, callback) {
+  if (typeof Vibrant === 'undefined') {
+    // Fallback wenn Vibrant nicht geladen
     callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
-  };
-  
-  img.src = imageUrl;
+    return;
+  }
+
+  Vibrant.from(imageUrl).getSwatches().then((swatches) => {
+    const vibrant = swatches.Vibrant?.getHex() || '#2c2f33';
+    const darkMuted = swatches.DarkMuted?.getHex() || '#1a1d20';
+    
+    callback(vibrant, darkMuted);
+  }).catch(() => {
+    callback('rgba(44, 47, 51, 0.75)', 'rgba(44, 47, 51, 0.75)');
+  });
 }
 
-// NEU: Funktion zum Anwenden des Gradient-Fades auf Music Container
+// NEU: Gradient auf Parent-Container anwenden (nicht auf den Content)
 function applyMusicGradient(color1, color2) {
-  spotifyInfo.style.background = `linear-gradient(135deg, ${color1}, ${color2})`;
-  spotifyInfo.style.backgroundClip = 'padding-box';
+  spotifyContainer.style.background = `linear-gradient(135deg, ${color1}80, ${color2}80)`;
+  spotifyContainer.style.borderRadius = '10px';
 }
 
 // NEU: Gradient zurücksetzen
 function resetMusicGradient() {
-  spotifyInfo.style.background = 'transparent';
+  spotifyContainer.style.background = 'rgba(44, 47, 51, 0.75)';
 }
 
 let musicActivityData = null;
@@ -312,12 +282,11 @@ function updateMusicDisplay(musicActivity, presence) {
   
   if (cover) {
     html += `<img src="${cover}" alt="Album Art" style="border-radius: 6px;">`;
-    // NEU: Farben aus Cover extrahieren und Gradient anwenden
-    extractDominantColors(cover, (color1, color2) => {
+    // NEU: Farben extrahieren UND auf Parent-Container anwenden
+    extractDominantColorsVibrant(cover, (color1, color2) => {
       applyMusicGradient(color1, color2);
     });
   } else {
-    // NEU: Gradient zurücksetzen wenn kein Cover
     resetMusicGradient();
   }
   
